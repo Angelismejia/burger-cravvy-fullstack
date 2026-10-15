@@ -64,15 +64,29 @@ La web usa `http://localhost:5256` por defecto. Para otra URL, crea `src/BurgerC
 | POST | `/api/auth/login` | Login de empleado → JWT (máx. 5 intentos/min) |
 | GET | `/api/panel/pedidos` | 🔒 Cola de cocina (pendientes, en preparación, listos) |
 | PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
-| GET | `/api/panel/productos` | 🔒 Menú completo |
-| PATCH | `/api/panel/productos/{slug}` | 🔒 `{ "isAvailable": false, "price": 9.49 }` |
+| GET | `/api/panel/productos` | 🔒 Menú completo, incluidos los retirados |
+| PATCH | `/api/panel/productos/{slug}/disponibilidad` | 🔒 `{ "isAvailable": false }` (agotado) |
+| POST | `/api/panel/productos` | 👑 Crear producto |
+| PUT | `/api/panel/productos/{slug}` | 👑 Editar nombre, descripción, precio, foto, distintivo y favorito |
+| POST | `/api/panel/productos/{slug}/retirar` | 👑 Retirar del menú (no se borra) |
+| POST | `/api/panel/productos/{slug}/reactivar` | 👑 Volver a ponerlo en el menú |
 
-🔒 = requiere `Authorization: Bearer <token>` con rol `Empleado` o `Admin`.
+🔒 = rol `Empleado` o `Admin` · 👑 = solo `Admin`. Ambos con `Authorization: Bearer <token>`;
+en Swagger usa el botón **Authorize**.
 
 ## Panel de cocina
 
-Entra en **http://localhost:5175/panel**. En Development la API crea un empleado de prueba con los datos de
-`SeedEmployee` en `src/BurgerCravvy.Api/appsettings.Development.json` (correo y contraseña están ahí).
+Entra en **http://localhost:5175/panel**. En Development la API crea dos usuarios de prueba con los datos de
+`SeedEmployee` y `SeedAdmin` en `src/BurgerCravvy.Api/appsettings.Development.json` (correo y contraseña están ahí).
+
+| Puede… | Empleado (cocina) | Admin |
+|---|:-:|:-:|
+| Ver y mover la cola de pedidos | ✅ | ✅ |
+| Marcar productos agotados / disponibles | ✅ | ✅ |
+| Cambiar precios | — | ✅ |
+| Crear y editar productos | — | ✅ |
+| Elegir los de «Nuestros Favoritos» | — | ✅ |
+| Retirar y reactivar productos | — | ✅ |
 
 Flujo de un pedido (las reglas viven en `Order` del Domain):
 
