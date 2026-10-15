@@ -11,6 +11,8 @@ const product = (id: string, price: number): Product => ({
   alt: '',
   badge: 'sticker',
   isAvailable: true,
+  isFavorite: true,
+  isArchived: false,
 })
 
 const catalog = [product('classic', 8.99), product('fries', 4.99)]

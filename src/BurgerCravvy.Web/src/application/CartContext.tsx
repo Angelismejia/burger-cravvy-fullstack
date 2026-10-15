@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Product } from '../domain/product'
+import { isPublicFavorite, type Product } from '../domain/product'
 import { countItems, setQuantity, toLines, totalPrice, type CartItems, type CartLine } from '../domain/cart'
 import { cartStorage } from '../infrastructure/storage/cartStorage'
 import { productRepository, type MenuResult } from '../infrastructure/repositories/productRepository'
@@ -44,9 +44,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Precio o disponibilidad cambiados desde el panel: se ven al instante.
+  // Cambios del panel al instante: precio, agotado, productos nuevos, retirados o
+  // que entran / salen de favoritos.
   useEffect(
-    () => publicHub().on('ProductUpdated', (p) => setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)))),
+    () =>
+      publicHub().on('ProductUpdated', (p) =>
+        setProducts((prev) => {
+          const without = prev.filter((x) => x.id !== p.id)
+          if (!isPublicFavorite(p)) return without
+          return prev.some((x) => x.id === p.id) ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p]
+        }),
+      ),
     [],
   )
 

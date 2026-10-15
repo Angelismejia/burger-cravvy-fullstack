@@ -13,6 +13,8 @@ export const fallbackProducts: Product[] = [
     alt: 'Hamburguesa clásica con queso, lechuga, tomate y pan brioche con sésamo',
     badge: 'sticker',
     isAvailable: true,
+    isFavorite: true,
+    isArchived: false,
   },
   {
     id: 'double-trouble',
@@ -23,6 +25,8 @@ export const fallbackProducts: Product[] = [
     alt: 'Hamburguesa doble de carne con queso fundido',
     badge: 'heart',
     isAvailable: true,
+    isFavorite: true,
+    isArchived: false,
   },
   {
     id: 'golden-fries',
@@ -33,5 +37,7 @@ export const fallbackProducts: Product[] = [
     alt: 'Papas fritas doradas y crujientes en una cesta con papel',
     badge: 'fries',
     isAvailable: true,
+    isFavorite: true,
+    isArchived: false,
   },
 ]

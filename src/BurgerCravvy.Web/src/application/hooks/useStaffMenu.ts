@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Product } from '../../domain/product'
+import type { Product, ProductDraft } from '../../domain/product'
 import { ApiError } from '../../infrastructure/http/apiClient'
 import { publicHub } from '../../infrastructure/realtime/publicHub'
 import { staffRepository } from '../../infrastructure/repositories/staffRepository'
+
+export type SaveResult = { ok: true; product: Product } | { ok: false; message: string; fieldErrors: Record<string, string[]> }
+
+/** Inserta o reemplaza un producto manteniendo el orden: activos primero, retirados al final. */
+function upsert(list: Product[], p: Product) {
+  const next = list.some((x) => x.id === p.id) ? list.map((x) => (x.id === p.id ? p : x)) : [...list, p]
+  return [...next.filter((x) => !x.isArchived), ...next.filter((x) => x.isArchived)]
+}
 
 export function useStaffMenu(token: string, onUnauthorized: () => void) {
   const [products, setProducts] = useState<Product[]>([])
@@ -21,26 +29,45 @@ export function useStaffMenu(token: string, onUnauthorized: () => void) {
     staffRepository.getMenu(token).then(setProducts).catch(handleError)
   }, [token, handleError])
 
-  // Cambios hechos por otro empleado aparecen sin recargar.
-  useEffect(
-    () => publicHub().on('ProductUpdated', (p) => setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)))),
-    [],
-  )
+  // Cambios hechos por otro empleado o administrador aparecen sin recargar.
+  useEffect(() => publicHub().on('ProductUpdated', (p) => setProducts((prev) => upsert(prev, p))), [])
 
-  const update = async (id: string, patch: { isAvailable?: boolean; price?: number }) => {
+  /** Ejecuta una acción sobre un producto mostrando su estado de guardado. */
+  const run = async (id: string, action: () => Promise<Product>) => {
     setSavingId(id)
     setError(null)
     try {
-      const updated = await staffRepository.updateProduct(token, id, patch)
-      setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)))
-      return true
+      const updated = await action()
+      setProducts((prev) => upsert(prev, updated))
     } catch (e) {
       handleError(e)
-      return false
     } finally {
       setSavingId(null)
     }
   }
 
-  return { products, error, savingId, update }
+  const setAvailability = (id: string, available: boolean) =>
+    run(id, () => staffRepository.setAvailability(token, id, available))
+  const archive = (id: string) => run(id, () => staffRepository.archiveProduct(token, id))
+  const restore = (id: string) => run(id, () => staffRepository.restoreProduct(token, id))
+
+  /** Crear (sin id) o editar (con id). Devuelve los errores por campo para el formulario. */
+  const save = async (draft: ProductDraft, id?: string): Promise<SaveResult> => {
+    try {
+      const product = id
+        ? await staffRepository.updateProduct(token, id, draft)
+        : await staffRepository.createProduct(token, draft)
+      setProducts((prev) => upsert(prev, product))
+      return { ok: true, product }
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) onUnauthorized()
+      return {
+        ok: false,
+        message: e instanceof Error ? e.message : 'Algo salió mal.',
+        fieldErrors: e instanceof ApiError ? e.fieldErrors : {},
+      }
+    }
+  }
+
+  return { products, error, savingId, setAvailability, archive, restore, save }
 }

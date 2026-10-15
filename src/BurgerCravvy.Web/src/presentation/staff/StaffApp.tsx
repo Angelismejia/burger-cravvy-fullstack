@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import { ClipboardList, LogOut, UtensilsCrossed } from 'lucide-react'
 import { useStaffSession } from '../../application/hooks/useStaffSession'
+import { isAdmin } from '../../domain/staff'
 import BurgerIcon from '../components/BurgerIcon'
 import LoginScreen from './LoginScreen'
 import OrderBoard from './OrderBoard'
@@ -59,7 +60,12 @@ export default function StaffApp() {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-3">
-                  <span className="hidden font-ui text-sm text-white-warm/85 md:block">Hola, {session.fullName}</span>
+                  <span className="hidden items-center gap-2 font-ui text-sm text-white-warm/85 md:flex">
+                    Hola, {session.fullName}
+                    <span className="rounded-full bg-mustard px-2 py-0.5 text-xs font-bold text-green-dark">
+                      {isAdmin(session) ? 'Admin' : 'Cocina'}
+                    </span>
+                  </span>
                   <button
                     type="button"
                     onClick={logout}
@@ -84,7 +90,7 @@ export default function StaffApp() {
                   {tab === 'orders' ? (
                     <OrderBoard token={session.token} onUnauthorized={logout} />
                   ) : (
-                    <MenuManager token={session.token} onUnauthorized={logout} />
+                    <MenuManager token={session.token} isAdmin={isAdmin(session)} onUnauthorized={logout} />
                   )}
                 </motion.div>
               </AnimatePresence>
