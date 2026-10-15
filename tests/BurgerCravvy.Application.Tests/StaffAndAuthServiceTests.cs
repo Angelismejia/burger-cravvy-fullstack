@@ -77,19 +77,29 @@ public class StaffServiceTests
     }
 
     [Fact]
-    public async Task Actualiza_disponibilidad_y_precio()
+    public async Task Marca_un_producto_como_agotado_y_avisa()
     {
-        var dto = await Service().UpdateProductAsync("classic-cravvy", new UpdateProductRequest(false, 9.49m));
+        var dto = await Service().SetAvailabilityAsync("classic-cravvy", new SetAvailabilityRequest(false));
 
         Assert.False(dto.IsAvailable);
-        Assert.Equal(9.49m, dto.Price);
         Assert.Equal([("ProductUpdated", "classic-cravvy")], _notifier.Sent);
     }
 
     [Fact]
-    public async Task Precio_invalido_lo_rechaza_el_dominio() =>
-        await Assert.ThrowsAsync<DomainException>(() =>
-            Service().UpdateProductAsync("classic-cravvy", new UpdateProductRequest(null, 0m)));
+    public async Task Disponibilidad_sin_valor_es_error_de_validacion() =>
+        await Assert.ThrowsAsync<ValidationException>(() =>
+            Service().SetAvailabilityAsync("classic-cravvy", new SetAvailabilityRequest(null)));
+
+    [Fact]
+    public async Task El_menu_del_panel_incluye_los_retirados()
+    {
+        _products.Items[0].Archive();
+
+        var menu = await Service().GetMenuAsync();
+
+        Assert.Single(menu);
+        Assert.True(menu[0].IsArchived);
+    }
 }
 
 public class AuthServiceTests

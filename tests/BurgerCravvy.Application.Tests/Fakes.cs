@@ -13,8 +13,10 @@ internal class FakeProductRepository : IProductRepository
 
     public FakeProductRepository(params Product[] products) => Items.AddRange(products);
 
-    public Task<IReadOnlyList<Product>> GetAllAsync(bool onlyFavorites, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<Product>>(Items.Where(p => !onlyFavorites || p.IsFavorite).ToList());
+    public Task<IReadOnlyList<Product>> GetAllAsync(bool onlyFavorites, bool includeArchived, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Product>>(Items
+            .Where(p => !onlyFavorites || p.IsFavorite)
+            .Where(p => includeArchived || !p.IsArchived).ToList());
 
     public Task<Product?> GetBySlugAsync(string slug, CancellationToken ct = default) =>
         Task.FromResult(Items.FirstOrDefault(p => p.Slug == slug));
@@ -23,6 +25,15 @@ internal class FakeProductRepository : IProductRepository
 
     public Task<IReadOnlyList<Product>> GetBySlugsAsync(IEnumerable<string> slugs, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<Product>>(Items.Where(p => slugs.Contains(p.Slug)).ToList());
+
+    public Task<bool> SlugExistsAsync(string slug, CancellationToken ct = default) =>
+        Task.FromResult(Items.Any(p => p.Slug == slug));
+
+    public Task AddAsync(Product product, CancellationToken ct = default)
+    {
+        Items.Add(product);
+        return Task.CompletedTask;
+    }
 }
 
 internal class FakeOrderRepository : IOrderRepository
