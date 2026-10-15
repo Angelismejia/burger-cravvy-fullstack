@@ -19,11 +19,13 @@ public class StaffController(IStaffService service) : ControllerBase
     public async Task<ActionResult<OrderDto>> ChangeStatus(string code, ChangeOrderStatusRequest request, CancellationToken ct) =>
         Ok(await service.ChangeOrderStatusAsync(code, request, ct));
 
+    /// <summary>Menú completo, incluidos los productos retirados.</summary>
     [HttpGet("productos")]
     public async Task<ActionResult<IReadOnlyList<ProductDto>>> GetMenu(CancellationToken ct) =>
         Ok(await service.GetMenuAsync(ct));
 
-    [HttpPatch("productos/{slug}")]
-    public async Task<ActionResult<ProductDto>> UpdateProduct(string slug, UpdateProductRequest request, CancellationToken ct) =>
-        Ok(await service.UpdateProductAsync(slug, request, ct));
+    /// <summary>Marca un producto como agotado o disponible.</summary>
+    [HttpPatch("productos/{slug}/disponibilidad")]
+    public async Task<ActionResult<ProductDto>> SetAvailability(string slug, SetAvailabilityRequest request, CancellationToken ct) =>
+        Ok(await service.SetAvailabilityAsync(slug, request, ct));
 }
