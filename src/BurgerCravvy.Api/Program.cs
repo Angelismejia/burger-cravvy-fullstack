@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using BurgerCravvy.Api;
 using BurgerCravvy.Api.Middleware;
 using BurgerCravvy.Api.Realtime;
+using BurgerCravvy.Api.Swagger;
 using BurgerCravvy.Application.Abstractions;
 using BurgerCravvy.Application;
 using BurgerCravvy.Infrastructure;
@@ -10,6 +11,7 @@ using BurgerCravvy.Infrastructure.Persistence;
 using BurgerCravvy.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +67,30 @@ builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(o =>
+{
+    o.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Burger Cravvy API",
+        Version = "v1",
+        Description = "Menú, pedidos y panel de cocina. Para los endpoints 🔒: haz login en " +
+                      "POST /api/auth/login, copia el token y pégalo en el botón «Authorize»."
+    });
+
+    // Botón «Authorize»: el token se pega sin el prefijo "Bearer".
+    o.AddSecurityDefinition(AuthorizeOperationFilter.SchemeName, new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Pega aquí el token que devuelve POST /api/auth/login."
+    });
+    o.OperationFilter<AuthorizeOperationFilter>();
+
+    // Los comentarios /// de los controladores aparecen como descripción de cada endpoint.
+    var xml = Path.Combine(AppContext.BaseDirectory, $"{typeof(Program).Assembly.GetName().Name}.xml");
+    if (File.Exists(xml)) o.IncludeXmlComments(xml);
+});
 
 const string WebPolicy = "web";
 var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
@@ -79,7 +104,11 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.DocumentTitle = "Burger Cravvy API";
+        o.EnablePersistAuthorization(); // el token sobrevive a recargar la página
+    });
 
     // En desarrollo se aplican migraciones y se crea el empleado de prueba.
     await DbSeeder.MigrateAndSeedAsync(app.Services, app.Configuration);
