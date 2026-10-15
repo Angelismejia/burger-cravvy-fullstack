@@ -16,6 +16,9 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
     public Task<Order?> GetByCodeAsync(string code, CancellationToken ct = default) =>
         db.Orders.AsNoTracking().Include(o => o.Items).FirstOrDefaultAsync(o => o.Code == code, ct);
 
+    public Task<bool> CodeExistsAsync(string code, CancellationToken ct = default) =>
+        db.Orders.AnyAsync(o => o.Code == code, ct);
+
     public Task<Order?> GetByCodeForUpdateAsync(string code, CancellationToken ct = default) =>
         db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Code == code, ct);
 

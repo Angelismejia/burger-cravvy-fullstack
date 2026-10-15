@@ -17,13 +17,16 @@ public class Order : Entity
 
     private Order() { } // EF Core
 
-    public Order(string customerName)
+    /// <param name="code">Código único generado con <see cref="OrderCode.Generate"/>.</param>
+    public Order(string customerName, string code)
     {
         if (string.IsNullOrWhiteSpace(customerName))
             throw new DomainException("El nombre del cliente es obligatorio.");
+        if (!OrderCode.IsValid(code))
+            throw new DomainException("El código del pedido no tiene un formato válido.");
         CustomerName = customerName.Trim();
         CreatedAtUtc = DateTime.UtcNow;
-        Code = $"BC-{CreatedAtUtc:yyMMdd}-{Random.Shared.Next(1000, 9999)}";
+        Code = code;
     }
 
     public void AddItem(Product product, int quantity)

@@ -80,7 +80,7 @@ export default function OrderTracker() {
                   id="track-code"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="BC-261015-1234"
+                  placeholder="BC-261015-K7M2QX"
                   maxLength={20}
                   className="min-w-0 flex-1 rounded-full border-2 border-brown-light/25 bg-white-warm px-4 py-2.5 font-ui uppercase tracking-wide text-green-dark outline-none transition focus:border-orange-retro"
                 />

@@ -1,6 +1,7 @@
 using BurgerCravvy.Application.Abstractions;
 using BurgerCravvy.Application.DTOs;
 using BurgerCravvy.Application.Exceptions;
+using BurgerCravvy.Domain.Common;
 using BurgerCravvy.Domain.Entities;
 
 namespace BurgerCravvy.Application.Services;
@@ -26,7 +27,7 @@ public class OrderService(IProductRepository products, IOrderRepository orders, 
         if (missing.Count > 0)
             throw new NotFoundException($"Productos no encontrados: {string.Join(", ", missing)}.");
 
-        var order = new Order(request.CustomerName!);
+        var order = new Order(request.CustomerName!, await NewUniqueCodeAsync(ct));
         foreach (var item in request.Items!)
             order.AddItem(bySlug[item.ProductId], item.Quantity);
         order.EnsureHasItems();
@@ -38,9 +39,21 @@ public class OrderService(IProductRepository products, IOrderRepository orders, 
 
     public async Task<OrderDto> GetByCodeAsync(string code, CancellationToken ct = default)
     {
-        var order = await orders.GetByCodeAsync(code, ct)
+        var order = await orders.GetByCodeAsync(code.Trim().ToUpperInvariant(), ct)
             ?? throw new NotFoundException($"No existe el pedido «{code}».");
         return OrderDto.FromEntity(order);
+    }
+
+    /// <summary>Una colisión es casi imposible, pero si ocurre se genera otro código.</summary>
+    private async Task<string> NewUniqueCodeAsync(CancellationToken ct)
+    {
+        const int maxAttempts = 5;
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            var code = OrderCode.Generate(DateTime.UtcNow);
+            if (!await orders.CodeExistsAsync(code, ct)) return code;
+        }
+        throw new InvalidOperationException("No se pudo generar un código de pedido único.");
     }
 
     private static void Validate(CreateOrderRequest request)
