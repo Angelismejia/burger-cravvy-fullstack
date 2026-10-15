@@ -19,7 +19,7 @@ public static class DbSeeder
 
     /// <summary>
     /// Aplica migraciones y crea los usuarios de prueba configurados en "SeedEmployee" y "SeedAdmin"
-    /// (solo existen en appsettings.Development.json). Si el correo ya existe, no lo toca.
+    /// (en appsettings.Development.json o en variables de entorno). Si el correo ya existe, no lo toca.
     /// </summary>
     public static async Task MigrateAndSeedAsync(IServiceProvider services, IConfiguration configuration)
     {

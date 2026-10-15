@@ -15,8 +15,9 @@ public static class DependencyInjection
         var connection = configuration.GetConnectionString("BurgerCravvy")
             ?? throw new InvalidOperationException("Falta la cadena de conexión 'BurgerCravvy'.");
 
+        // Azure SQL gratuito se pausa solo y tarda en "despertar": se reintenta más veces.
         services.AddDbContext<AppDbContext>(o => o.UseSqlServer(connection,
-            sql => sql.EnableRetryOnFailure(3)));
+            sql => sql.EnableRetryOnFailure(6)));
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();

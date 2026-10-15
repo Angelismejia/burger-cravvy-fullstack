@@ -93,7 +93,12 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 const string WebPolicy = "web";
-var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+// En producción la URL de la web (Netlify) llega por la variable de entorno Cors__WebUrl.
+var allowedOrigins = (builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
+    .Append(builder.Configuration["Cors:WebUrl"]?.TrimEnd('/'))
+    .OfType<string>()
+    .Where(o => o.Length > 0)
+    .ToArray();
 builder.Services.AddCors(o => o.AddPolicy(WebPolicy, p =>
     p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials())); // credenciales: requeridas por SignalR
 
@@ -101,18 +106,17 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+// Swagger también en producción: es un proyecto de portafolio y sirve de documentación pública.
+app.UseSwagger();
+app.UseSwaggerUI(o =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(o =>
-    {
-        o.DocumentTitle = "Burger Cravvy API";
-        o.EnablePersistAuthorization(); // el token sobrevive a recargar la página
-    });
+    o.DocumentTitle = "Burger Cravvy API";
+    o.EnablePersistAuthorization(); // el token sobrevive a recargar la página
+});
 
-    // En desarrollo se aplican migraciones y se crea el empleado de prueba.
-    await DbSeeder.MigrateAndSeedAsync(app.Services, app.Configuration);
-}
+// Aplica migraciones y crea los usuarios configurados en SeedEmployee/SeedAdmin
+// (en desarrollo vienen de appsettings.Development.json; en Azure, de variables de entorno).
+await DbSeeder.MigrateAndSeedAsync(app.Services, app.Configuration);
 
 app.UseCors(WebPolicy);
 app.UseRateLimiter();
