@@ -426,3 +426,10 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# --- Burger Cravvy ---
+# Web (Vite)
+dist/
+.env
+# Configuración local con secretos de desarrollo (ver appsettings.Development.example.json)
+src/BurgerCravvy.Api/appsettings.Development.json
