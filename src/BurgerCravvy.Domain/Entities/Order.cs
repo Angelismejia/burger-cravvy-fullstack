@@ -31,6 +31,8 @@ public class Order : Entity
 
     public void AddItem(Product product, int quantity)
     {
+        if (product.IsArchived)
+            throw new DomainException($"«{product.Name}» ya no está en el menú.");
         if (!product.IsAvailable)
             throw new DomainException($"«{product.Name}» no está disponible ahora mismo.");
 
