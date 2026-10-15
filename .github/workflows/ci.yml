@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: API (.NET 9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restaurar
+        run: dotnet restore BurgerCravvy.sln
+
+      - name: Compilar
+        run: dotnet build BurgerCravvy.sln --no-restore -c Release
+
+      - name: Tests (Domain + Application)
+        run: dotnet test BurgerCravvy.sln --no-build -c Release --logger "trx;LogFileName=resultados.trx"
+
+      - name: Publicar resultados de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-tests-dotnet
+          path: tests/**/TestResults/*.trx
+
+  web:
+    name: Web (React + Vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/BurgerCravvy.Web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/BurgerCravvy.Web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tests (Vitest)
+        run: npm test
+
+      - name: Compilar (TypeScript + Vite)
+        run: npm run build
