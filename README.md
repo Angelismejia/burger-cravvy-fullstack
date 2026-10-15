@@ -1,1 +1,92 @@
-# burger-cravvy-fullstack
+# Burger Cravvy 🍔
+
+Hamburguesería retro ficticia: landing page en React + API en .NET con Clean Architecture y SQL Server.
+
+## Estructura
+
+```
+BurgerCravvy.sln
+src/
+├── BurgerCravvy.Domain/          Entidades (Product, Order, OrderItem), enums y reglas de negocio. Sin dependencias.
+├── BurgerCravvy.Application/     Casos de uso (ProductService, OrderService), DTOs e interfaces de repositorio.
+├── BurgerCravvy.Infrastructure/  EF Core + SQL Server: AppDbContext, configuraciones, migraciones, repositorios, datos semilla.
+├── BurgerCravvy.Api/             ASP.NET Core Web API: controladores, manejo global de errores (ProblemDetails), CORS, Swagger.
+└── BurgerCravvy.Web/             React + TypeScript + Vite + Tailwind + Motion
+    └── src/
+        ├── domain/               Tipos y lógica pura (producto, carrito, pedido)
+        ├── application/          Estado del carrito/menú y casos de uso (usePlaceOrder)
+        ├── infrastructure/       Cliente HTTP, repositorios de la API, localStorage
+        └── presentation/         Componentes y contenido visual
+```
+
+Dependencias: `Api → Application + Infrastructure`, `Infrastructure → Application → Domain`.
+
+## Requisitos
+
+- .NET SDK 9
+- SQL Server (por defecto `.\SQLEXPRESS`, autenticación de Windows) — se cambia en `src/BurgerCravvy.Api/appsettings.json`
+- Node.js 20+
+
+## Configuración inicial
+
+```bash
+# Copia la plantilla y pon tu propia clave JWT (32+ caracteres) y contraseña de prueba
+cp src/BurgerCravvy.Api/appsettings.Development.example.json src/BurgerCravvy.Api/appsettings.Development.json
+cp src/BurgerCravvy.Web/.env.example src/BurgerCravvy.Web/.env
+```
+
+## Ejecutar
+
+```bash
+# 1) API  → http://localhost:5256/swagger  (en Development aplica las migraciones y crea BurgerCravvyDb)
+dotnet run --project src/BurgerCravvy.Api --launch-profile http
+
+# 2) Web  → http://localhost:5175
+cd src/BurgerCravvy.Web
+npm install
+npm run dev -- --port 5175
+```
+
+La URL de la API se configura en `src/BurgerCravvy.Web/.env` (`VITE_API_URL`). Si la API está apagada, la web muestra el menú con una copia local.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/productos?favoritos=true` | Menú (o solo favoritos) |
+| GET | `/api/productos/{slug}` | Un producto |
+| POST | `/api/pedidos` | Registra un pedido **pendiente** (demo, sin pagos) |
+| GET | `/api/pedidos/{codigo}` | Seguimiento del pedido (cliente) |
+| POST | `/api/auth/login` | Login de empleado → JWT (máx. 5 intentos/min) |
+| GET | `/api/panel/pedidos` | 🔒 Cola de cocina (pendientes, en preparación, listos) |
+| PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
+| GET | `/api/panel/productos` | 🔒 Menú completo |
+| PATCH | `/api/panel/productos/{slug}` | 🔒 `{ "isAvailable": false, "price": 9.49 }` |
+
+🔒 = requiere `Authorization: Bearer <token>` con rol `Empleado` o `Admin`.
+
+## Panel de cocina
+
+Entra en **http://localhost:5175/panel**. En Development la API crea un empleado de prueba con los datos de
+`SeedEmployee` en `src/BurgerCravvy.Api/appsettings.Development.json` (correo y contraseña están ahí).
+
+Flujo de un pedido (las reglas viven en `Order` del Domain):
+
+```
+Pendiente ──► En preparación ──► Listo ──► Entregado
+    └──────────────┴──► Cancelado
+```
+
+El cliente lo sigue desde **Sigue tu pedido** (footer, o al confirmar el pedido) y la línea de tiempo se refresca sola.
+
+> ⚠️ `appsettings.Development.json` no se sube al repo (está en `.gitignore`).
+> En producción usa variables de entorno (`Jwt__Key`, etc.) y no definas `SeedEmployee`.
+
+## Migraciones
+
+```bash
+dotnet ef migrations add NombreMigracion -p src/BurgerCravvy.Infrastructure -s src/BurgerCravvy.Api -o Persistence/Migrations
+```
+
+> Las fotos son de Unsplash (por URL) y sirven de marcador de posición: se cambian en
+> `presentation/siteContent.ts` (hero/galería) y en los datos semilla de `ProductConfiguration.cs` (productos).
