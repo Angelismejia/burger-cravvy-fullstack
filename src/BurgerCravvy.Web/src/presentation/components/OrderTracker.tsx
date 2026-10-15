@@ -146,7 +146,7 @@ export default function OrderTracker() {
                       </ol>
                     )}
                     {!cancelled && order.status !== 'Delivered' && (
-                      <p className="mt-4 font-ui text-xs text-green-dark/60">Se actualiza solo cada pocos segundos.</p>
+                      <p className="mt-4 font-ui text-xs text-green-dark/60">Se actualiza en tiempo real.</p>
                     )}
                   </motion.div>
                 )}

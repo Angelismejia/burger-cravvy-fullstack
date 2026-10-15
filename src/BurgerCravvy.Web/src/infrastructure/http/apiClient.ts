@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:5256'
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:5256'
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -15,7 +15,7 @@ interface RequestOptions extends RequestInit {
 export async function apiRequest<T>(path: string, { token, ...init }: RequestOptions = {}): Promise<T> {
   let res: Response
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
+    res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       headers: {
         'Content-Type': 'application/json',

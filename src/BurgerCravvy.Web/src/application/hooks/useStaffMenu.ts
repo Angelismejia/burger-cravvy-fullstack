@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Product } from '../../domain/product'
 import { ApiError } from '../../infrastructure/http/apiClient'
+import { publicHub } from '../../infrastructure/realtime/publicHub'
 import { staffRepository } from '../../infrastructure/repositories/staffRepository'
 
 export function useStaffMenu(token: string, onUnauthorized: () => void) {
@@ -19,6 +20,12 @@ export function useStaffMenu(token: string, onUnauthorized: () => void) {
   useEffect(() => {
     staffRepository.getMenu(token).then(setProducts).catch(handleError)
   }, [token, handleError])
+
+  // Cambios hechos por otro empleado aparecen sin recargar.
+  useEffect(
+    () => publicHub().on('ProductUpdated', (p) => setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)))),
+    [],
+  )
 
   const update = async (id: string, patch: { isAvailable?: boolean; price?: number }) => {
     setSavingId(id)

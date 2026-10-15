@@ -1,9 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { isFinal, type Order } from '../domain/order'
 import { orderRepository } from '../infrastructure/repositories/orderRepository'
+import { publicHub, stopTrackingOrder, trackOrder } from '../infrastructure/realtime/publicHub'
 import { lastOrderStore } from '../infrastructure/storage/sessionStore'
 
-const POLL_MS = 8000
+/** Respaldo por si se pierde algún aviso en tiempo real. */
+const FALLBACK_POLL_MS = 30_000
 
 interface TrackingValue {
   isOpen: boolean
@@ -48,12 +50,23 @@ export function OrderTrackingProvider({ children }: { children: ReactNode }) {
     [fetchOrder],
   )
 
-  // Mientras el panel esté abierto y el pedido siga en curso, refresca solo.
+  const trackedCode = order && !isFinal(order.status) ? order.code : null
+
+  // Mientras el diálogo esté abierto y el pedido siga en curso: avisos en tiempo real
+  // de su grupo en SignalR, más un refresco lento de respaldo.
   useEffect(() => {
-    if (!isOpen || !order || isFinal(order.status)) return
-    const id = setInterval(() => fetchOrder(order.code, true), POLL_MS)
-    return () => clearInterval(id)
-  }, [isOpen, order, fetchOrder])
+    if (!isOpen || !trackedCode) return
+    void trackOrder(trackedCode)
+    const off = publicHub().on('OrderUpdated', (updated) => {
+      if (updated.code === trackedCode) setOrder(updated)
+    })
+    const id = setInterval(() => fetchOrder(trackedCode, true), FALLBACK_POLL_MS)
+    return () => {
+      off()
+      clearInterval(id)
+      void stopTrackingOrder(trackedCode)
+    }
+  }, [isOpen, trackedCode, fetchOrder])
 
   const value = useMemo<TrackingValue>(
     () => ({

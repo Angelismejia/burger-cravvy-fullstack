@@ -4,6 +4,7 @@ import { countItems, setQuantity, toLines, totalPrice, type CartItems, type Cart
 import { cartStorage } from '../infrastructure/storage/cartStorage'
 import { productRepository, type MenuResult } from '../infrastructure/repositories/productRepository'
 import { fallbackProducts } from '../infrastructure/repositories/fallbackProducts'
+import { publicHub } from '../infrastructure/realtime/publicHub'
 
 interface CartContextValue {
   products: Product[]
@@ -42,6 +43,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [])
+
+  // Precio o disponibilidad cambiados desde el panel: se ven al instante.
+  useEffect(
+    () => publicHub().on('ProductUpdated', (p) => setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)))),
+    [],
+  )
 
   useEffect(() => cartStorage.save(items), [items])
 

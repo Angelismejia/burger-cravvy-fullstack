@@ -18,7 +18,7 @@ export default function MenuManager({ token, onUnauthorized }: Props) {
         Menú
       </h1>
       <p className="font-ui text-sm text-green-dark/70">
-        Marca productos como agotados o ajusta precios. Los clientes ven los cambios al recargar la web.
+        Marca productos como agotados o ajusta precios. Los clientes ven los cambios al instante.
       </p>
 
       {error && (

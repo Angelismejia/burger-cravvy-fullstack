@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Clock, Loader2, RefreshCw, X } from 'lucide-react'
 import { useOrderQueue } from '../../application/hooks/useOrderQueue'
+import type { LiveStatus } from '../../infrastructure/realtime/realtimeChannel'
 import { canCancel, NEXT_ACTION, type Order, type OrderStatus } from '../../domain/order'
 import { formatPrice } from '../../domain/product'
 
@@ -35,7 +36,7 @@ interface Props {
 }
 
 export default function OrderBoard({ token, onUnauthorized }: Props) {
-  const { orders, loaded, error, busyCode, act, refresh } = useOrderQueue(token, onUnauthorized)
+  const { orders, loaded, error, busyCode, act, refresh, live, highlight } = useOrderQueue(token, onUnauthorized)
   const now = useNow()
 
   return (
@@ -45,7 +46,7 @@ export default function OrderBoard({ token, onUnauthorized }: Props) {
           <h1 id="board-title" className="font-display text-3xl font-bold text-orange-deep md:text-4xl">
             Cola de pedidos
           </h1>
-          <p className="font-ui text-sm text-green-dark/70">Se actualiza sola cada 5 segundos.</p>
+          <LiveBadge status={live} />
         </div>
         <button
           type="button"
@@ -87,7 +88,14 @@ export default function OrderBoard({ token, onUnauthorized }: Props) {
                 <ul className="mt-3 space-y-3">
                   <AnimatePresence initial={false}>
                     {list.map((o) => (
-                      <OrderCard key={o.code} order={o} now={now} busy={busyCode === o.code} onAct={act} />
+                      <OrderCard
+                        key={o.code}
+                        order={o}
+                        now={now}
+                        busy={busyCode === o.code}
+                        isNew={highlight === o.code}
+                        onAct={act}
+                      />
                     ))}
                   </AnimatePresence>
                   {list.length === 0 && (
@@ -109,11 +117,13 @@ function OrderCard({
   order,
   now,
   busy,
+  isNew,
   onAct,
 }: {
   order: Order
   now: number
   busy: boolean
+  isNew: boolean
   onAct: (code: string, action: 'preparar' | 'listo' | 'entregar' | 'cancelar') => void
 }) {
   const reduce = useReducedMotion()
@@ -127,8 +137,19 @@ function OrderCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-      className="rounded-[22px] bg-white-warm p-4 shadow-[0_3px_0_rgba(168,109,70,0.15)] ring-1 ring-brown-light/15"
+      className={`rounded-[22px] bg-white-warm p-4 shadow-[0_3px_0_rgba(168,109,70,0.15)] transition-shadow duration-500 ${
+        isNew ? 'ring-4 ring-mustard' : 'ring-1 ring-brown-light/15'
+      }`}
     >
+      {isNew && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-2 inline-block rounded-full bg-mustard px-2.5 py-0.5 font-ui text-xs font-bold text-green-dark"
+        >
+          ¡Pedido nuevo!
+        </motion.p>
+      )}
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-ui text-xs font-bold tracking-wider text-brown-light">{order.code}</p>
@@ -179,5 +200,26 @@ function OrderCard({
         </div>
       </div>
     </motion.li>
+  )
+}
+
+const liveCopy: Record<LiveStatus, { label: string; dot: string }> = {
+  live: { label: 'En vivo', dot: 'bg-emerald-vintage' },
+  connecting: { label: 'Conectando…', dot: 'bg-mustard' },
+  offline: { label: 'Sin conexión en vivo · se actualiza cada 30 s', dot: 'bg-orange-deep' },
+}
+
+function LiveBadge({ status }: { status: LiveStatus }) {
+  const { label, dot } = liveCopy[status]
+  return (
+    <p className="mt-1 inline-flex items-center gap-2 font-ui text-sm text-green-dark/75" role="status">
+      <span className="relative flex h-2.5 w-2.5" aria-hidden>
+        {status === 'live' && (
+          <span className={`absolute inset-0 animate-ping rounded-full opacity-60 motion-reduce:animate-none ${dot}`} />
+        )}
+        <span className={`relative h-2.5 w-2.5 rounded-full ${dot}`} />
+      </span>
+      {label}
+    </p>
   )
 }
