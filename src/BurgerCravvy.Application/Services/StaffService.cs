@@ -9,7 +9,8 @@ public interface IStaffService
     Task<IReadOnlyList<OrderDto>> GetOrderQueueAsync(CancellationToken ct = default);
     Task<OrderDto> ChangeOrderStatusAsync(string code, ChangeOrderStatusRequest request, CancellationToken ct = default);
     Task<IReadOnlyList<ProductDto>> GetMenuAsync(CancellationToken ct = default);
-    Task<ProductDto> UpdateProductAsync(string slug, UpdateProductRequest request, CancellationToken ct = default);
+    /// <summary>Agotado / disponible: lo puede hacer cualquier empleado.</summary>
+    Task<ProductDto> SetAvailabilityAsync(string slug, SetAvailabilityRequest request, CancellationToken ct = default);
 }
 
 public class StaffService(
@@ -42,16 +43,22 @@ public class StaffService(
         return dto;
     }
 
+    /// <summary>Menú completo para el panel, incluidos los productos retirados.</summary>
     public async Task<IReadOnlyList<ProductDto>> GetMenuAsync(CancellationToken ct = default) =>
-        (await products.GetAllAsync(onlyFavorites: false, ct)).Select(ProductDto.FromEntity).ToList();
+        (await products.GetAllAsync(onlyFavorites: false, includeArchived: true, ct)).Select(ProductDto.FromEntity).ToList();
 
-    public async Task<ProductDto> UpdateProductAsync(string slug, UpdateProductRequest request, CancellationToken ct = default)
+    public async Task<ProductDto> SetAvailabilityAsync(string slug, SetAvailabilityRequest request, CancellationToken ct = default)
     {
+        if (request.IsAvailable is not { } available)
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["isAvailable"] = ["Indica si el producto está disponible (true) o agotado (false)."]
+            });
+
         var product = await products.GetBySlugForUpdateAsync(slug, ct)
             ?? throw new NotFoundException($"No encontramos el producto «{slug}».");
 
-        if (request.IsAvailable is { } available) product.SetAvailability(available);
-        if (request.Price is { } price) product.ChangePrice(price);
+        product.SetAvailability(available);
 
         await unitOfWork.SaveChangesAsync(ct);
         var dto = ProductDto.FromEntity(product);
