@@ -12,8 +12,9 @@ public class StaffServiceTests
     private readonly FakeProductRepository _products = new(TestData.Product(1, "classic-cravvy", 8.99m));
     private readonly FakeOrderRepository _orders = new();
     private readonly FakeUnitOfWork _uow = new();
+    private readonly FakeNotifier _notifier = new();
 
-    private StaffService Service() => new(_orders, _products, _uow);
+    private StaffService Service() => new(_orders, _products, _uow, _notifier);
 
     private Order Seed()
     {
@@ -34,6 +35,7 @@ public class StaffServiceTests
 
         Assert.Equal(expected, dto.Status);
         Assert.Equal(1, _uow.SaveCount);
+        Assert.Equal([("OrderUpdated", order.Code)], _notifier.Sent);
     }
 
     [Fact]
@@ -54,6 +56,7 @@ public class StaffServiceTests
         await Assert.ThrowsAsync<DomainException>(() =>
             Service().ChangeOrderStatusAsync(order.Code, new ChangeOrderStatusRequest("entregar")));
         Assert.Equal(OrderStatus.Pending, order.Status);
+        Assert.Empty(_notifier.Sent);
     }
 
     [Fact]
@@ -80,6 +83,7 @@ public class StaffServiceTests
 
         Assert.False(dto.IsAvailable);
         Assert.Equal(9.49m, dto.Price);
+        Assert.Equal([("ProductUpdated", "classic-cravvy")], _notifier.Sent);
     }
 
     [Fact]

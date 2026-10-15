@@ -12,7 +12,8 @@ public interface IOrderService
     Task<OrderDto> GetByCodeAsync(string code, CancellationToken ct = default);
 }
 
-public class OrderService(IProductRepository products, IOrderRepository orders, IUnitOfWork unitOfWork) : IOrderService
+public class OrderService(
+    IProductRepository products, IOrderRepository orders, IUnitOfWork unitOfWork, IRealtimeNotifier notifier) : IOrderService
 {
     public async Task<OrderDto> CreateAsync(CreateOrderRequest request, CancellationToken ct = default)
     {
@@ -34,7 +35,10 @@ public class OrderService(IProductRepository products, IOrderRepository orders, 
 
         await orders.AddAsync(order, ct);
         await unitOfWork.SaveChangesAsync(ct);
-        return OrderDto.FromEntity(order);
+
+        var dto = OrderDto.FromEntity(order);
+        await notifier.OrderCreatedAsync(dto, ct);
+        return dto;
     }
 
     public async Task<OrderDto> GetByCodeAsync(string code, CancellationToken ct = default)

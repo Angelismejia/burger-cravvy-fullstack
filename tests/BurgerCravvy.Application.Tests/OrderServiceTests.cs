@@ -13,8 +13,9 @@ public class OrderServiceTests
         TestData.Product(2, "golden-fries", 4.99m));
     private readonly FakeOrderRepository _orders = new();
     private readonly FakeUnitOfWork _uow = new();
+    private readonly FakeNotifier _notifier = new();
 
-    private OrderService Service() => new(_products, _orders, _uow);
+    private OrderService Service() => new(_products, _orders, _uow, _notifier);
 
     private static CreateOrderRequest Request(string? name = "Ana", params (string id, int qty)[] items) =>
         new(name, items.Select(i => new CreateOrderItemRequest(i.id, i.qty)).ToList());
@@ -30,6 +31,22 @@ public class OrderServiceTests
         Assert.True(OrderCode.IsValid(dto.Code));
         Assert.Single(_orders.Items);
         Assert.Equal(1, _uow.SaveCount);
+    }
+
+    [Fact]
+    public async Task Avisa_a_la_cocina_del_pedido_nuevo()
+    {
+        var dto = await Service().CreateAsync(Request("Ana", ("golden-fries", 1)));
+
+        Assert.Equal([("OrderCreated", dto.Code)], _notifier.Sent);
+    }
+
+    [Fact]
+    public async Task Si_el_pedido_no_se_guarda_no_se_avisa()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => Service().CreateAsync(Request("Ana", ("pizza", 1))));
+
+        Assert.Empty(_notifier.Sent);
     }
 
     [Fact]

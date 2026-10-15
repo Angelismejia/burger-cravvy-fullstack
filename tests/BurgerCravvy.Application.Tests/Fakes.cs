@@ -1,4 +1,5 @@
 using BurgerCravvy.Application.Abstractions;
+using BurgerCravvy.Application.DTOs;
 using BurgerCravvy.Domain.Common;
 using BurgerCravvy.Domain.Entities;
 using BurgerCravvy.Domain.Enums;
@@ -87,6 +88,22 @@ internal class FakePasswordHasher : IPasswordHasher
 internal class FakeTokenGenerator : IJwtTokenGenerator
 {
     public AccessToken Generate(Employee employee) => new($"token-{employee.Email}", DateTime.UtcNow.AddHours(1));
+}
+
+/// <summary>Guarda los avisos enviados para poder comprobarlos.</summary>
+internal class FakeNotifier : IRealtimeNotifier
+{
+    public List<(string Event, string Key)> Sent { get; } = [];
+
+    public Task OrderCreatedAsync(OrderDto order, CancellationToken ct = default) => Record("OrderCreated", order.Code);
+    public Task OrderUpdatedAsync(OrderDto order, CancellationToken ct = default) => Record("OrderUpdated", order.Code);
+    public Task ProductUpdatedAsync(ProductDto product, CancellationToken ct = default) => Record("ProductUpdated", product.Id);
+
+    private Task Record(string evt, string key)
+    {
+        Sent.Add((evt, key));
+        return Task.CompletedTask;
+    }
 }
 
 internal static class TestData

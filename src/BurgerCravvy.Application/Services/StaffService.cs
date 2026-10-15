@@ -12,7 +12,8 @@ public interface IStaffService
     Task<ProductDto> UpdateProductAsync(string slug, UpdateProductRequest request, CancellationToken ct = default);
 }
 
-public class StaffService(IOrderRepository orders, IProductRepository products, IUnitOfWork unitOfWork) : IStaffService
+public class StaffService(
+    IOrderRepository orders, IProductRepository products, IUnitOfWork unitOfWork, IRealtimeNotifier notifier) : IStaffService
 {
     public async Task<IReadOnlyList<OrderDto>> GetOrderQueueAsync(CancellationToken ct = default) =>
         (await orders.GetActiveAsync(ct)).Select(OrderDto.FromEntity).ToList();
@@ -36,7 +37,9 @@ public class StaffService(IOrderRepository orders, IProductRepository products, 
         transition();
 
         await unitOfWork.SaveChangesAsync(ct);
-        return OrderDto.FromEntity(order);
+        var dto = OrderDto.FromEntity(order);
+        await notifier.OrderUpdatedAsync(dto, ct);
+        return dto;
     }
 
     public async Task<IReadOnlyList<ProductDto>> GetMenuAsync(CancellationToken ct = default) =>
@@ -51,6 +54,8 @@ public class StaffService(IOrderRepository orders, IProductRepository products, 
         if (request.Price is { } price) product.ChangePrice(price);
 
         await unitOfWork.SaveChangesAsync(ct);
-        return ProductDto.FromEntity(product);
+        var dto = ProductDto.FromEntity(product);
+        await notifier.ProductUpdatedAsync(dto, ct);
+        return dto;
     }
 }

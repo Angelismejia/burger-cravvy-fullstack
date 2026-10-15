@@ -2,6 +2,8 @@ using System.Text;
 using System.Threading.RateLimiting;
 using BurgerCravvy.Api;
 using BurgerCravvy.Api.Middleware;
+using BurgerCravvy.Api.Realtime;
+using BurgerCravvy.Application.Abstractions;
 using BurgerCravvy.Application;
 using BurgerCravvy.Infrastructure;
 using BurgerCravvy.Infrastructure.Persistence;
@@ -32,6 +34,17 @@ builder.Services
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1),
         };
+        // Los WebSockets no admiten cabeceras: SignalR manda el JWT en la query (?access_token=).
+        o.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var token = ctx.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) && ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    ctx.Token = token;
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 
@@ -44,6 +57,10 @@ builder.Services.AddRateLimiter(o =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1) }));
 });
 
+// --- Tiempo real ---
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IRealtimeNotifier, SignalRNotifier>();
+
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -53,7 +70,7 @@ builder.Services.AddSwaggerGen();
 const string WebPolicy = "web";
 var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(o => o.AddPolicy(WebPolicy, p =>
-    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials())); // credenciales: requeridas por SignalR
 
 var app = builder.Build();
 
@@ -73,6 +90,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<OrdersHub>(OrdersHub.Path);
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 app.Run();
