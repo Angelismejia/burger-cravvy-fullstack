@@ -1,5 +1,7 @@
 # Burger Cravvy 🍔
 
+[![CI](https://github.com/Angelismejia/burger-cravvy-fullstack/actions/workflows/ci.yml/badge.svg)](https://github.com/Angelismejia/burger-cravvy-fullstack/actions/workflows/ci.yml)
+
 Hamburguesería retro ficticia: landing page en React + API en .NET con Clean Architecture y SQL Server.
 
 ## Estructura
@@ -10,13 +12,16 @@ src/
 ├── BurgerCravvy.Domain/          Entidades (Product, Order, OrderItem), enums y reglas de negocio. Sin dependencias.
 ├── BurgerCravvy.Application/     Casos de uso (ProductService, OrderService), DTOs e interfaces de repositorio.
 ├── BurgerCravvy.Infrastructure/  EF Core + SQL Server: AppDbContext, configuraciones, migraciones, repositorios, datos semilla.
-├── BurgerCravvy.Api/             ASP.NET Core Web API: controladores, manejo global de errores (ProblemDetails), CORS, Swagger.
-└── BurgerCravvy.Web/             React + TypeScript + Vite + Tailwind + Motion
+├── BurgerCravvy.Api/             ASP.NET Core Web API: controladores, hub SignalR, JWT, ProblemDetails, CORS, Swagger.
+└── BurgerCravvy.Web/             React + TypeScript + Vite + Tailwind + Motion + SignalR
     └── src/
         ├── domain/               Tipos y lógica pura (producto, carrito, pedido)
-        ├── application/          Estado del carrito/menú y casos de uso (usePlaceOrder)
-        ├── infrastructure/       Cliente HTTP, repositorios de la API, localStorage
-        └── presentation/         Componentes y contenido visual
+        ├── application/          Estado del carrito/menú y casos de uso (pedir, seguir pedido, panel)
+        ├── infrastructure/       Cliente HTTP, SignalR, repositorios de la API, almacenamiento local
+        └── presentation/         Componentes, web del cliente y panel de cocina
+tests/
+├── BurgerCravvy.Domain.Tests/       Reglas de negocio (estados del pedido, precios, códigos…)
+└── BurgerCravvy.Application.Tests/  Casos de uso con repositorios en memoria (sin base de datos)
 ```
 
 Dependencias: `Api → Application + Infrastructure`, `Infrastructure → Application → Domain`.
@@ -25,7 +30,7 @@ Dependencias: `Api → Application + Infrastructure`, `Infrastructure → Applic
 
 - .NET SDK 9
 - SQL Server (por defecto `.\SQLEXPRESS`, autenticación de Windows) — se cambia en `src/BurgerCravvy.Api/appsettings.json`
-- Node.js 20+
+- Node.js 20.19+ o 22.12+ (requisito de Vite 8)
 
 ## Configuración inicial
 
@@ -77,10 +82,33 @@ Pendiente ──► En preparación ──► Listo ──► Entregado
     └──────────────┴──► Cancelado
 ```
 
-El cliente lo sigue desde **Sigue tu pedido** (footer, o al confirmar el pedido) y la línea de tiempo se refresca sola.
+El cliente lo sigue desde **Sigue tu pedido** (footer, o al confirmar el pedido).
 
 > ⚠️ `appsettings.Development.json` no se sube al repo (está en `.gitignore`).
 > En producción usa variables de entorno (`Jwt__Key`, etc.) y no definas `SeedEmployee`.
+
+## Tiempo real (SignalR)
+
+Hub en **`/hubs/pedidos`**. Los casos de uso avisan a través de `IRealtimeNotifier` (Application) y
+`SignalRNotifier` (Api) lo entrega:
+
+| Evento | Quién lo recibe | Para qué |
+|---|---|---|
+| `OrderCreated` | grupo `cocina` (JWT de empleado) | El pedido aparece en el panel con aviso sonoro |
+| `OrderUpdated` | `cocina` + grupo del pedido | La línea de tiempo del cliente avanza sola |
+| `ProductUpdated` | todos | Precio y «Agotado» cambian sin recargar |
+
+Métodos del hub: `JoinKitchen()` (solo empleados), `TrackOrder(codigo)` y `StopTracking(codigo)`.
+Si se pierde la conexión, la web se reconecta sola y mientras tanto refresca cada 30 s.
+
+## Tests
+
+```bash
+dotnet test                              # Domain + Application (xUnit)
+cd src/BurgerCravvy.Web && npm test      # lógica del carrito y de pedidos (Vitest)
+```
+
+GitHub Actions ejecuta la compilación y todos los tests en cada push y pull request (`.github/workflows/ci.yml`).
 
 ## Migraciones
 
