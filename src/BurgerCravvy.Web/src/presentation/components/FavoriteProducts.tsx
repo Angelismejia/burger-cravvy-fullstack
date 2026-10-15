@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useCart } from '../../application/CartContext'
 import ProductCard from './ProductCard'
@@ -17,19 +18,30 @@ export default function FavoriteProducts() {
           className="text-center font-display text-[clamp(2.25rem,4.5vw,3rem)] font-bold text-orange-deep"
         >
           <span id="favorites" className="relative inline-block" aria-hidden>
-            {/* las letras "rebotan" al entrar en pantalla */}
-            {title.split('').map((ch, i) => (
-              <motion.span
-                key={i}
-                className="inline-block whitespace-pre"
-                initial={{ opacity: 0, y: reduce ? 0 : 22, rotate: reduce ? 0 : -8 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{ type: 'spring', stiffness: 420, damping: 18, delay: i * 0.03 }}
-              >
-                {ch}
-              </motion.span>
-            ))}
+            {/* las letras "rebotan" al entrar en pantalla; se agrupan por palabra
+                para que el salto de línea nunca corte una palabra a la mitad */}
+            {title.split(' ').map((word, w, words) => {
+              const offset = words.slice(0, w).join(' ').length + (w > 0 ? 1 : 0)
+              return (
+                <Fragment key={word}>
+                  {w > 0 && ' '}
+                  <span className="inline-block whitespace-nowrap">
+                    {word.split('').map((ch, i) => (
+                      <motion.span
+                        key={i}
+                        className="inline-block"
+                        initial={{ opacity: 0, y: reduce ? 0 : 22, rotate: reduce ? 0 : -8 }}
+                        whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 18, delay: (offset + i) * 0.03 }}
+                      >
+                        {ch}
+                      </motion.span>
+                    ))}
+                  </span>
+                </Fragment>
+              )
+            })}
             <motion.svg
               viewBox="0 0 200 14"
               preserveAspectRatio="none"

@@ -53,7 +53,7 @@ export default function Hero() {
           className="hero-title mt-1 font-hero text-[clamp(2.75rem,8vw,5.75rem)] font-extrabold leading-[0.95] tracking-tight text-white-warm"
         >
           {lines.map((line, i) => (
-            <span key={line} className="block overflow-hidden pb-1">
+            <span key={line} className="-mb-[0.18em] block overflow-hidden pb-[0.18em]">
               <motion.span
                 className="block"
                 initial={{ y: reduce ? 0 : '100%', opacity: reduce ? 0 : 1 }}

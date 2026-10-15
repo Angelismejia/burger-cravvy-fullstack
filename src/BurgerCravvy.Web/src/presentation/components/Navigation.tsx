@@ -75,7 +75,7 @@ export default function Navigation() {
               </motion.span>
             )}
           </button>
-          <OrderButton variant="cream" className="hidden md:inline-flex" />
+          <OrderButton variant="cream" className="max-sm:px-4 max-sm:text-xs" />
           <button
             type="button"
             className="grid h-11 w-11 place-items-center rounded-full text-white-warm transition hover:bg-white-warm/15 md:hidden"
@@ -111,9 +111,6 @@ export default function Navigation() {
                 </a>
               </li>
             ))}
-            <li className="px-6 pb-5 pt-2">
-              <OrderButton variant="cream" className="w-full justify-center" />
-            </li>
           </motion.ul>
         )}
       </AnimatePresence>

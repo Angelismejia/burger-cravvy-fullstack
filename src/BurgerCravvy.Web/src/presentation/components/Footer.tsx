@@ -47,7 +47,7 @@ function FooterHeading({ children }: { children: ReactNode }) {
 }
 
 const linkCls =
-  'inline-block py-1 font-ui text-[15px] text-white-warm/85 transition hover:translate-x-0.5 hover:text-white-warm'
+  'inline-block py-1 text-left font-ui text-[15px] text-white-warm/85 transition hover:translate-x-0.5 hover:text-white-warm'
 
 export default function Footer() {
   const dialogRef = useRef<HTMLDialogElement>(null)

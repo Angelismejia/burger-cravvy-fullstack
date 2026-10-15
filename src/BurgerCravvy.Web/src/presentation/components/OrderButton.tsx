@@ -26,7 +26,7 @@ export default function OrderButton({ variant = 'orange', className = '' }: Orde
     <button
       type="button"
       onClick={handleClick}
-      className={`relative inline-flex min-h-11 items-center gap-2 rounded-full px-6 py-2.5 font-ui text-sm font-bold uppercase tracking-wider transition-all duration-250 hover:-translate-y-0.5 hover:shadow-[0_6px_0_-1px_rgba(35,105,79,0.25)] active:translate-y-0 md:px-8 ${styles} ${className}`}
+      className={`relative inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-6 py-2.5 font-ui text-sm font-bold uppercase tracking-wider transition-all duration-250 hover:-translate-y-0.5 hover:shadow-[0_6px_0_-1px_rgba(35,105,79,0.25)] active:translate-y-0 md:px-8 ${styles} ${className}`}
       aria-label={count > 0 ? `Pide ya — ver carrito con ${count} productos` : 'Pide ya — ver nuestro menú'}
     >
       Pide ya
