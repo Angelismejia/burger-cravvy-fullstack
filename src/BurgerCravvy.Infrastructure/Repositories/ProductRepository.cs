@@ -7,10 +7,11 @@ namespace BurgerCravvy.Infrastructure.Repositories;
 
 public class ProductRepository(AppDbContext db) : IProductRepository
 {
-    public async Task<IReadOnlyList<Product>> GetAllAsync(bool onlyFavorites, CancellationToken ct = default) =>
+    public async Task<IReadOnlyList<Product>> GetAllAsync(bool onlyFavorites, bool includeArchived, CancellationToken ct = default) =>
         await db.Products.AsNoTracking()
             .Where(p => !onlyFavorites || p.IsFavorite)
-            .OrderBy(p => p.Id)
+            .Where(p => includeArchived || !p.IsArchived)
+            .OrderBy(p => p.IsArchived).ThenBy(p => p.Id)
             .ToListAsync(ct);
 
     public Task<Product?> GetBySlugAsync(string slug, CancellationToken ct = default) =>
@@ -24,4 +25,10 @@ public class ProductRepository(AppDbContext db) : IProductRepository
         var list = slugs.ToList();
         return await db.Products.Where(p => list.Contains(p.Slug)).ToListAsync(ct);
     }
+
+    public Task<bool> SlugExistsAsync(string slug, CancellationToken ct = default) =>
+        db.Products.AnyAsync(p => p.Slug == slug, ct);
+
+    public async Task AddAsync(Product product, CancellationToken ct = default) =>
+        await db.Products.AddAsync(product, ct);
 }

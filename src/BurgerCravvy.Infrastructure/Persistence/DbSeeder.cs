@@ -10,9 +10,16 @@ namespace BurgerCravvy.Infrastructure.Persistence;
 
 public static class DbSeeder
 {
+    /// <summary>Secciones de configuración con usuarios de prueba y el rol de cada uno.</summary>
+    private static readonly (string Section, EmployeeRole Role, string DefaultName)[] SeedUsers =
+    [
+        ("SeedEmployee", EmployeeRole.Empleado, "Equipo Cocina"),
+        ("SeedAdmin", EmployeeRole.Admin, "Administración"),
+    ];
+
     /// <summary>
-    /// Aplica migraciones y, si no hay empleados, crea uno con los datos de "SeedEmployee"
-    /// (solo se configura en appsettings.Development.json).
+    /// Aplica migraciones y crea los usuarios de prueba configurados en "SeedEmployee" y "SeedAdmin"
+    /// (solo existen en appsettings.Development.json). Si el correo ya existe, no lo toca.
     /// </summary>
     public static async Task MigrateAndSeedAsync(IServiceProvider services, IConfiguration configuration)
     {
@@ -21,20 +28,23 @@ public static class DbSeeder
         var db = sp.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
 
-        var seed = configuration.GetSection("SeedEmployee");
-        var email = seed["Email"];
-        var password = seed["Password"];
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return;
-
         var employees = sp.GetRequiredService<IEmployeeRepository>();
-        if (await employees.AnyAsync()) return;
+        var hasher = sp.GetRequiredService<IPasswordHasher>();
+        var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
 
-        var employee = new Employee(email, seed["FullName"] ?? "Equipo Cocina", EmployeeRole.Empleado);
-        employee.SetPasswordHash(sp.GetRequiredService<IPasswordHasher>().Hash(employee, password));
-        await employees.AddAsync(employee);
-        await db.SaveChangesAsync();
+        foreach (var (section, role, defaultName) in SeedUsers)
+        {
+            var seed = configuration.GetSection(section);
+            var email = seed["Email"];
+            var password = seed["Password"];
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) continue;
+            if (await employees.GetByEmailAsync(email.Trim().ToLowerInvariant()) is not null) continue;
 
-        sp.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder")
-            .LogInformation("Empleado de prueba creado: {Email}", employee.Email);
+            var employee = new Employee(email, seed["FullName"] ?? defaultName, role);
+            employee.SetPasswordHash(hasher.Hash(employee, password));
+            await employees.AddAsync(employee);
+            await db.SaveChangesAsync();
+            logger.LogInformation("Usuario de prueba creado: {Email} ({Role})", employee.Email, role);
+        }
     }
 }

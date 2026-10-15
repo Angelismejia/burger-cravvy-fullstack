@@ -31,7 +31,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                 Description = "Carne jugosa, queso fundido y todos los clásicos.",
                 Price = 8.99m, ImageUrl = Img("1571091718767-18b5b1457add"),
                 ImageAlt = "Hamburguesa clásica con queso, lechuga, tomate y pan brioche con sésamo",
-                Badge = ProductBadge.Sticker, IsFavorite = true, IsAvailable = true
+                Badge = ProductBadge.Sticker, IsFavorite = true, IsAvailable = true, IsArchived = false
             },
             new
             {
@@ -39,7 +39,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                 Description = "El doble de sabor, el doble de felicidad.",
                 Price = 11.99m, ImageUrl = Img("1553979459-d2229ba7433b"),
                 ImageAlt = "Hamburguesa doble de carne con queso fundido",
-                Badge = ProductBadge.Heart, IsFavorite = true, IsAvailable = true
+                Badge = ProductBadge.Heart, IsFavorite = true, IsAvailable = true, IsArchived = false
             },
             new
             {
@@ -47,7 +47,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                 Description = "Doradas, crujientes e imposibles de compartir.",
                 Price = 4.99m, ImageUrl = Img("1573080496219-bb080dd4f877"),
                 ImageAlt = "Papas fritas doradas y crujientes en una cesta con papel",
-                Badge = ProductBadge.Fries, IsFavorite = true, IsAvailable = true
+                Badge = ProductBadge.Fries, IsFavorite = true, IsAvailable = true, IsArchived = false
             });
     }
 }

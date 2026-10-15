@@ -161,6 +161,9 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
@@ -196,6 +199,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             Description = "Carne jugosa, queso fundido y todos los clásicos.",
                             ImageAlt = "Hamburguesa clásica con queso, lechuga, tomate y pan brioche con sésamo",
                             ImageUrl = "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=800&q=75",
+                            IsArchived = false,
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Classic Cravvy",
@@ -209,6 +213,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             Description = "El doble de sabor, el doble de felicidad.",
                             ImageAlt = "Hamburguesa doble de carne con queso fundido",
                             ImageUrl = "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=75",
+                            IsArchived = false,
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Double Trouble",
@@ -222,6 +227,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             Description = "Doradas, crujientes e imposibles de compartir.",
                             ImageAlt = "Papas fritas doradas y crujientes en una cesta con papel",
                             ImageUrl = "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=75",
+                            IsArchived = false,
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Papas Doradas",
