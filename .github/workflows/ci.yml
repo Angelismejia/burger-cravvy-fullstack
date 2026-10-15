@@ -14,9 +14,9 @@ jobs:
     name: API (.NET 9)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 9.0.x
 
@@ -31,7 +31,7 @@ jobs:
 
       - name: Publicar resultados de tests
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resultados-tests-dotnet
           path: tests/**/TestResults/*.trx
@@ -43,9 +43,9 @@ jobs:
       run:
         working-directory: src/BurgerCravvy.Web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
