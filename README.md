@@ -37,7 +37,6 @@ Dependencias: `Api → Application + Infrastructure`, `Infrastructure → Applic
 ```bash
 # Copia la plantilla y pon tu propia clave JWT (32+ caracteres) y contraseña de prueba
 cp src/BurgerCravvy.Api/appsettings.Development.example.json src/BurgerCravvy.Api/appsettings.Development.json
-cp src/BurgerCravvy.Web/.env.example src/BurgerCravvy.Web/.env
 ```
 
 ## Ejecutar
@@ -52,7 +51,7 @@ npm install
 npm run dev -- --port 5175
 ```
 
-La URL de la API se configura en `src/BurgerCravvy.Web/.env` (`VITE_API_URL`). Si la API está apagada, la web muestra el menú con una copia local.
+La web usa `http://localhost:5256` por defecto. Para otra URL, crea `src/BurgerCravvy.Web/.env` con `VITE_API_URL=https://tu-api`. Si la API está apagada, la web muestra el menú con una copia local.
 
 ## Endpoints
 
