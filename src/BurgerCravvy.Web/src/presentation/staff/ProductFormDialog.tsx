@@ -140,7 +140,7 @@ export default function ProductFormDialog({ open, product, onClose, onSave }: Pr
                   />
                 </Field>
 
-                <Field label="Precio ($)" error={fieldError('price')} htmlFor="pf-price">
+                <Field label="Precio (RD$)" error={fieldError('price')} htmlFor="pf-price">
                   <input
                     id="pf-price"
                     type="number"

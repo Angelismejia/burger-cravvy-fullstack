@@ -122,9 +122,9 @@ export default function Footer() {
           </ul>
           <ul className="mt-5 space-y-2 font-ui text-sm text-white-warm/85">
             <li>
-              <a href="tel:+15551234567" className="inline-flex items-center gap-2 hover:text-white-warm">
+              <a href="tel:+18099777238" className="inline-flex items-center gap-2 hover:text-white-warm">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-cream/15"><Phone className="h-3.5 w-3.5" aria-hidden /></span>
-                (555) 123-4567
+                809-977-7238
               </a>
             </li>
             <li>

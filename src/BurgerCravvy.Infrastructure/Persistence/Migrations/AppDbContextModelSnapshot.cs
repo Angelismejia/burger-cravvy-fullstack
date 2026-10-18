@@ -203,7 +203,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Classic Cravvy",
-                            Price = 8.99m,
+                            Price = 450m,
                             Slug = "classic-cravvy"
                         },
                         new
@@ -217,7 +217,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Double Trouble",
-                            Price = 11.99m,
+                            Price = 595m,
                             Slug = "double-trouble"
                         },
                         new
@@ -231,7 +231,7 @@ namespace BurgerCravvy.Infrastructure.Persistence.Migrations
                             IsAvailable = true,
                             IsFavorite = true,
                             Name = "Papas Doradas",
-                            Price = 4.99m,
+                            Price = 225m,
                             Slug = "golden-fries"
                         });
                 });

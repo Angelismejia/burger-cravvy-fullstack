@@ -6,7 +6,7 @@ namespace BurgerCravvy.Domain.Entities;
 
 public class Product : Entity
 {
-    public const decimal MaxPrice = 1000m;
+    public const decimal MaxPrice = 50000m;
 
     public string Slug { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;

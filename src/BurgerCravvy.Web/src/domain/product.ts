@@ -35,4 +35,6 @@ export const BADGES: { value: ProductBadge; label: string }[] = [
 /** ¿Debe aparecer en «Nuestros Favoritos» de la web pública? */
 export const isPublicFavorite = (p: Product) => p.isFavorite && !p.isArchived
 
-export const formatPrice = (n: number) => `$${n.toFixed(2)}`
+const dop = new Intl.NumberFormat('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+export const formatPrice = (n: number) => `RD$ ${dop.format(n)}`

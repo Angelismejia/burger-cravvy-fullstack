@@ -59,7 +59,7 @@ public class MenuAdminServiceTests
 
     [Fact]
     public async Task Precio_por_encima_del_maximo_se_rechaza() =>
-        await Assert.ThrowsAsync<ValidationException>(() => Service().CreateAsync(Request(price: 5000m)));
+        await Assert.ThrowsAsync<ValidationException>(() => Service().CreateAsync(Request(price: BurgerCravvy.Domain.Entities.Product.MaxPrice + 1)));
 
     [Fact]
     public async Task Editar_cambia_datos_y_precio_pero_no_el_slug()
