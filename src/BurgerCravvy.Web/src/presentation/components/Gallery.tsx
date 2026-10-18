@@ -26,9 +26,19 @@ export default function Gallery() {
 
   return (
     <section id="about" aria-labelledby="gallery-title" className="relative z-10 pb-20 pt-16 md:pb-24 md:pt-20">
-      <h2 id="gallery-title" className="sr-only">
-        Nosotros — así se vive Burger Cravvy
-      </h2>
+      <div className="container-site">
+        <div className="mx-auto mb-10 max-w-[680px] text-center">
+          <h2 id="gallery-title" className="font-display text-[clamp(2.25rem,4.5vw,3rem)] font-bold text-orange-deep">
+            Nosotros
+          </h2>
+          <p className="mt-4 font-body text-lg text-ink/80">
+            En Burger Cravvy hacemos hamburguesas al estilo de los diners de siempre: carne a la plancha,
+            pan suave y papas doradas, servidas rápido y con cariño. Un lugar para compartir con amigos
+            y familia, donde cada visita se convierte en un buen recuerdo.
+          </p>
+          <p className="mt-3 font-hand text-xl text-ink/70">Momentos felices, recuerdos sabrosos.</p>
+        </div>
+      </div>
       <div className="container-site">
         <ul className="mx-auto grid max-w-[1000px] gap-5 sm:grid-cols-3 md:gap-7">
           {galleryImages.map((img, i) => (
