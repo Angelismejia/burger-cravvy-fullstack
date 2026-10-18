@@ -433,3 +433,6 @@ dist/
 .env
 # Configuración local con secretos de desarrollo (ver appsettings.Development.example.json)
 src/BurgerCravvy.Api/appsettings.Development.json
+
+# Caché de compilación de TypeScript
+*.tsbuildinfo
