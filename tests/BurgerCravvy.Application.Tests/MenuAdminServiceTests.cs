@@ -14,8 +14,9 @@ public class MenuAdminServiceTests
 
     private static SaveProductRequest Request(
         string? name = "Bacon Lovers", decimal? price = 10.5m, string? imageUrl = "https://images.example.test/bacon.jpg",
-        string? badge = "heart", bool favorite = true, string? description = "Doble bacon crujiente.") =>
-        new(name, description, price, imageUrl, "Hamburguesa con bacon", badge, favorite);
+        string? badge = "heart", bool favorite = true, string? description = "Doble bacon crujiente.",
+        string? category = null) =>
+        new(name, description, price, imageUrl, "Hamburguesa con bacon", badge, favorite, category);
 
     [Fact]
     public async Task Crea_un_producto_con_slug_a_partir_del_nombre()
@@ -104,4 +105,41 @@ public class MenuAdminServiceTests
     [Fact]
     public async Task Editar_un_producto_inexistente_devuelve_no_encontrado() =>
         await Assert.ThrowsAsync<NotFoundException>(() => Service().UpdateAsync("no-existe", Request()));
+
+    // ---------- categorías ----------
+
+    [Fact]
+    public async Task Sin_categoria_un_producto_nuevo_es_hamburguesa()
+    {
+        var dto = await Service().CreateAsync(Request());
+        Assert.Equal("burger", dto.Category);
+    }
+
+    [Theory]
+    [InlineData("drink", "drink")]
+    [InlineData("Dessert", "dessert")]
+    public async Task Crea_un_producto_en_la_categoria_indicada(string category, string expected)
+    {
+        var dto = await Service().CreateAsync(Request("Batida de Fresa", badge: "none", category: category));
+
+        Assert.Equal(expected, dto.Category);
+        Assert.Equal("none", dto.Badge);
+    }
+
+    [Fact]
+    public async Task Editar_sin_categoria_conserva_la_que_tenia()
+    {
+        await Service().UpdateAsync("classic-cravvy", Request(category: "side"));
+
+        var dto = await Service().UpdateAsync("classic-cravvy", Request());
+
+        Assert.Equal("side", dto.Category);
+    }
+
+    [Fact]
+    public async Task Categoria_desconocida_se_rechaza()
+    {
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => Service().CreateAsync(Request(category: "pizza")));
+        Assert.Equal(["category"], ex.Errors.Keys);
+    }
 }

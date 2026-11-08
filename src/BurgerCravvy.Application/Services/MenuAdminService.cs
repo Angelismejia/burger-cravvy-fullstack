@@ -26,7 +26,7 @@ public partial class MenuAdminService(IProductRepository products, IUnitOfWork u
         var data = Validate(request);
 
         var product = new Product(await UniqueSlugAsync(data.Name, ct), data.Name, data.Description, data.Price,
-            data.ImageUrl, data.ImageAlt, data.Badge, request.IsFavorite);
+            data.ImageUrl, data.ImageAlt, data.Badge, request.IsFavorite, data.Category ?? ProductCategory.Burger);
 
         await products.AddAsync(product, ct);
         return await SaveAndNotifyAsync(product, ct);
@@ -40,6 +40,7 @@ public partial class MenuAdminService(IProductRepository products, IUnitOfWork u
         // El slug no cambia al renombrar: así no se rompen enlaces ni carritos guardados.
         product.UpdateDetails(data.Name, data.Description, data.ImageUrl, data.ImageAlt, data.Badge);
         product.ChangePrice(data.Price);
+        if (data.Category is { } category) product.ChangeCategory(category);
         if (!product.IsArchived) product.SetFavorite(request.IsFavorite);
 
         return await SaveAndNotifyAsync(product, ct);
@@ -73,7 +74,8 @@ public partial class MenuAdminService(IProductRepository products, IUnitOfWork u
 
     // ---------- validación ----------
 
-    private record ValidProduct(string Name, string Description, decimal Price, string ImageUrl, string ImageAlt, ProductBadge Badge);
+    private record ValidProduct(string Name, string Description, decimal Price, string ImageUrl, string ImageAlt, ProductBadge Badge,
+        ProductCategory? Category);
 
     private static ValidProduct Validate(SaveProductRequest r)
     {
@@ -99,10 +101,17 @@ public partial class MenuAdminService(IProductRepository products, IUnitOfWork u
         if (imageAlt.Length > 200) Error("imageAlt", "La descripción de la foto no puede superar 200 caracteres.");
 
         if (!Enum.TryParse<ProductBadge>(r.Badge, ignoreCase: true, out var badge) || !Enum.IsDefined(badge))
-            Error("badge", "Elige un distintivo: sticker, heart o fries.");
+            Error("badge", "Elige un distintivo: sticker, heart, fries o none.");
+
+        ProductCategory? category = null;
+        if (!string.IsNullOrWhiteSpace(r.Category))
+        {
+            if (Enum.TryParse<ProductCategory>(r.Category, ignoreCase: true, out var c) && Enum.IsDefined(c)) category = c;
+            else Error("category", "Elige una categoría: burger, side, drink o dessert.");
+        }
 
         if (errors.Count > 0) throw new ValidationException(errors);
-        return new ValidProduct(name, description, r.Price!.Value, imageUrl, imageAlt, badge);
+        return new ValidProduct(name, description, r.Price!.Value, imageUrl, imageAlt, badge, category);
     }
 
     // ---------- slug ----------
