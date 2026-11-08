@@ -10,6 +10,7 @@ const product = (id: string, price: number): Product => ({
   image: '',
   alt: '',
   badge: 'sticker',
+  category: 'burger',
   isAvailable: true,
   isFavorite: true,
   isArchived: false,

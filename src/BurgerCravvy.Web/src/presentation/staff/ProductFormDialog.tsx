@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ImageOff, Loader2, Star, X } from 'lucide-react'
-import { BADGES, type Product, type ProductDraft } from '../../domain/product'
+import { BADGES, CATEGORIES, type Product, type ProductDraft } from '../../domain/product'
 import type { SaveResult } from '../../application/hooks/useStaffMenu'
 
 interface Props {
@@ -18,8 +18,9 @@ const empty: ProductDraft = {
   price: 0,
   imageUrl: '',
   imageAlt: '',
-  badge: 'sticker',
-  isFavorite: true,
+  badge: 'none',
+  category: 'burger',
+  isFavorite: false,
 }
 
 const toDraft = (p: Product): ProductDraft => ({
@@ -29,6 +30,7 @@ const toDraft = (p: Product): ProductDraft => ({
   imageUrl: p.image,
   imageAlt: p.alt,
   badge: p.badge,
+  category: p.category,
   isFavorite: p.isFavorite,
 })
 
@@ -145,7 +147,7 @@ export default function ProductFormDialog({ open, product, onClose, onSave }: Pr
                     id="pf-price"
                     type="number"
                     min="0.01"
-                    max="1000"
+                    max="50000"
                     step="0.01"
                     inputMode="decimal"
                     value={price}
@@ -153,6 +155,22 @@ export default function ProductFormDialog({ open, product, onClose, onSave }: Pr
                     onChange={(e) => setPrice(e.target.value)}
                     className={`${inputCls} max-w-40`}
                   />
+                </Field>
+
+                <Field label="Categoría" error={fieldError('category')} htmlFor="pf-category">
+                  <select
+                    id="pf-category"
+                    value={draft.category}
+                    aria-invalid={!!fieldError('category')}
+                    onChange={(e) => set('category', e.target.value as ProductDraft['category'])}
+                    className={`${inputCls} max-w-56`}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="Foto (dirección web)" error={fieldError('imageUrl')} htmlFor="pf-img">

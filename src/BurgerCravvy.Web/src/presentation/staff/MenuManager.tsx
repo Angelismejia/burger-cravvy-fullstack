@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Archive, ArchiveRestore, Loader2, Pencil, Plus, Star } from 'lucide-react'
 import { useStaffMenu } from '../../application/hooks/useStaffMenu'
-import { formatPrice, type Product } from '../../domain/product'
+import { CATEGORIES, formatPrice, type Product } from '../../domain/product'
 import ProductFormDialog from './ProductFormDialog'
 
 interface Props {
@@ -18,7 +18,11 @@ export default function MenuManager({ token, isAdmin, onUnauthorized }: Props) {
   const [form, setForm] = useState<FormState>({ open: false })
   const closeForm = useCallback(() => setForm({ open: false }), [])
 
-  const active = products.filter((p) => !p.isArchived)
+  // Agrupados por sección, en el mismo orden que el menú público.
+  const order = CATEGORIES.map((c) => c.value)
+  const active = products
+    .filter((p) => !p.isArchived)
+    .sort((a, b) => order.indexOf(a.category) - order.indexOf(b.category))
   const archived = products.filter((p) => p.isArchived)
 
   return (
@@ -172,8 +176,13 @@ function ProductRow({
             />
           </button>
         </div>
-        <p className={`font-ui text-xs font-bold uppercase tracking-wider ${product.isAvailable ? 'text-emerald-vintage' : 'text-orange-deep'}`}>
-          {product.isAvailable ? 'Disponible' : 'Agotado'}
+        <p className="flex flex-wrap items-center gap-2 font-ui text-xs font-bold uppercase tracking-wider">
+          <span className={product.isAvailable ? 'text-emerald-vintage' : 'text-orange-deep'}>
+            {product.isAvailable ? 'Disponible' : 'Agotado'}
+          </span>
+          <span className="rounded-full bg-mustard/25 px-2 py-0.5 text-[10px] text-brown-light">
+            {CATEGORIES.find((c) => c.value === product.category)?.label}
+          </span>
         </p>
 
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
