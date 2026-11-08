@@ -52,6 +52,22 @@ public class ProductTests
             TestData.Product().UpdateDetails("Bacon", "", "https://example.test/b.jpg", "", (ProductBadge)99));
 
     [Fact]
+    public void Producto_nuevo_es_hamburguesa_si_no_se_indica_categoria() =>
+        Assert.Equal(ProductCategory.Burger, TestData.Product().Category);
+
+    [Fact]
+    public void Cambiar_categoria_lo_mueve_de_seccion()
+    {
+        var product = TestData.Product();
+        product.ChangeCategory(ProductCategory.Dessert);
+        Assert.Equal(ProductCategory.Dessert, product.Category);
+    }
+
+    [Fact]
+    public void Categoria_desconocida_se_rechaza() =>
+        Assert.Throws<DomainException>(() => TestData.Product().ChangeCategory((ProductCategory)99));
+
+    [Fact]
     public void Retirar_quita_de_favoritos_y_no_se_puede_pedir()
     {
         var product = TestData.Product();

@@ -5,5 +5,6 @@ public enum ProductBadge
 {
     Sticker = 0,
     Heart = 1,
-    Fries = 2
+    Fries = 2,
+    None = 3
 }

@@ -15,6 +15,7 @@ public class Product : Entity
     public string ImageUrl { get; private set; } = string.Empty;
     public string ImageAlt { get; private set; } = string.Empty;
     public ProductBadge Badge { get; private set; }
+    public ProductCategory Category { get; private set; }
     public bool IsFavorite { get; private set; }
     public bool IsAvailable { get; private set; } = true;
     /// <summary>Retirado del menú: no se muestra ni se puede pedir, pero los pedidos antiguos lo conservan.</summary>
@@ -26,11 +27,13 @@ public class Product : Entity
     private Product() { } // EF Core
 
     public Product(string slug, string name, string description, decimal price,
-        string imageUrl, string imageAlt, ProductBadge badge, bool isFavorite = true)
+        string imageUrl, string imageAlt, ProductBadge badge, bool isFavorite = true,
+        ProductCategory category = ProductCategory.Burger)
     {
         if (string.IsNullOrWhiteSpace(slug)) throw new DomainException("El identificador del producto es obligatorio.");
         Slug = slug;
         UpdateDetails(name, description, imageUrl, imageAlt, badge);
+        ChangeCategory(category);
         IsFavorite = isFavorite;
         ChangePrice(price);
     }
@@ -45,6 +48,12 @@ public class Product : Entity
         ImageUrl = imageUrl.Trim();
         ImageAlt = string.IsNullOrWhiteSpace(imageAlt) ? Name : imageAlt.Trim();
         Badge = badge;
+    }
+
+    public void ChangeCategory(ProductCategory category)
+    {
+        if (!Enum.IsDefined(category)) throw new DomainException("La categoría del producto no es válida.");
+        Category = category;
     }
 
     public void ChangePrice(decimal price)
