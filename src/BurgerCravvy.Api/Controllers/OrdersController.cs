@@ -1,6 +1,7 @@
 using BurgerCravvy.Application.DTOs;
 using BurgerCravvy.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BurgerCravvy.Api.Controllers;
 
@@ -8,8 +9,9 @@ namespace BurgerCravvy.Api.Controllers;
 [Route("api/pedidos")]
 public class OrdersController(IOrderService service) : ControllerBase
 {
-    /// <summary>Registra un pedido en estado Pendiente. No procesa pagos (demo).</summary>
+    /// <summary>Registra un pedido en estado Pendiente. No procesa pagos (demo). Máx. 10 por minuto.</summary>
     [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Orders)]
     public async Task<ActionResult<OrderDto>> Create(CreateOrderRequest request, CancellationToken ct)
     {
         var order = await service.CreateAsync(request, ct);

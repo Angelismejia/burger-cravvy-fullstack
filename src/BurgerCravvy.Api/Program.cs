@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Threading.RateLimiting;
 using BurgerCravvy.Api;
 using BurgerCravvy.Api.Middleware;
@@ -50,13 +50,17 @@ builder.Services
     });
 builder.Services.AddAuthorization();
 
-// Máximo 5 intentos de login por minuto y por IP.
+// Límite de peticiones por IP (ventana fija de 1 minuto). Al pasarse, la API responde 429.
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    o.AddPolicy(RateLimitPolicies.Login, ctx => RateLimitPartition.GetFixedWindowLimiter(
-        ctx.Connection.RemoteIpAddress?.ToString() ?? "anon",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1) }));
+    o.AddPolicy(RateLimitPolicies.Login, ctx => PerIpPerMinute(ctx, permitLimit: 5));
+    o.AddPolicy(RateLimitPolicies.Orders, ctx => PerIpPerMinute(ctx, permitLimit: 10));
+
+    static RateLimitPartition<string> PerIpPerMinute(HttpContext ctx, int permitLimit) =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = permitLimit, Window = TimeSpan.FromMinutes(1) });
 });
 
 // --- Tiempo real ---
@@ -93,7 +97,7 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 const string WebPolicy = "web";
-// En producción la URL de la web (Netlify) llega por la variable de entorno Cors__WebUrl.
+// En producción la URL de la web (Cloudflare Pages) llega por la variable de entorno Cors__WebUrl.
 var allowedOrigins = (builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
     .Append(builder.Configuration["Cors:WebUrl"]?.TrimEnd('/'))
     .OfType<string>()
