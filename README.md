@@ -1,109 +1,138 @@
 # Burger Cravvy 🍔
 
+**Español** · [English](README.en.md)
+
 [![CI](https://github.com/Angelismejia/burger-cravvy-fullstack/actions/workflows/ci.yml/badge.svg)](https://github.com/Angelismejia/burger-cravvy-fullstack/actions/workflows/ci.yml)
+![.NET 9](https://img.shields.io/badge/.NET-9-512BD4?logo=dotnet&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=white)
+![SignalR](https://img.shields.io/badge/SignalR-tiempo%20real-0A7BBB)
 
-Hamburguesería retro ficticia: landing page en React + API en .NET con Clean Architecture y SQL Server.
+Hamburguesería retro **ficticia** con pedidos en línea y un **panel de cocina en tiempo real**.
+Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, desplegada en la nube.
 
-## Estructura
+### 🔗 Demo en vivo
 
+| | |
+|---|---|
+| 🌐 **Web** | **https://burger-cravvy-fullstack.pages.dev** |
+| 👩‍🍳 **Panel de cocina** | https://burger-cravvy-fullstack.pages.dev/panel |
+| 📘 **API (Swagger)** | https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/swagger |
+
+> La API está en el plan gratuito de Azure: si lleva un rato sin uso, **la primera carga puede tardar unos 20 s**
+> mientras despiertan el servidor y la base de datos. Mientras tanto la web muestra el menú con una copia local.
+> Los pedidos son de demostración: se guardan, pero no se cobra nada.
+
+![Portada de Burger Cravvy](assets/screenshots/hero.jpg)
+
+---
+
+## ✨ Qué hace
+
+- **Menú por categorías** (hamburguesas, acompañantes, bebidas y postres) cargado desde la API.
+- **Carrito** que se guarda en el navegador y **pedido sin registro**: solo pide un nombre.
+- **Seguimiento en tiempo real**: el cliente ve cómo su pedido pasa de *Recibido* a *En preparación*, *Listo* y *Entregado* sin recargar.
+- **Panel de cocina** con login: los pedidos nuevos aparecen al instante con un aviso sonoro.
+- **Gestión del menú por roles**: el **Empleado** marca productos agotados; el **Admin** además cambia precios, crea, edita y retira productos.
+- Si un precio cambia o un producto se agota, **todas las webs abiertas se actualizan solas**.
+
+## 📸 Capturas
+
+| Menú con pestañas | Carrito |
+|---|---|
+| ![Menú](assets/screenshots/menu.jpg) | ![Carrito](assets/screenshots/carrito.jpg) |
+| **Seguimiento del pedido (tiempo real)** | **Login del panel de cocina** |
+| ![Seguimiento](assets/screenshots/seguimiento.jpg) | ![Panel](assets/screenshots/panel-login.jpg) |
+
+<p align="center">
+  <img src="assets/screenshots/movil.jpg" alt="Portada en móvil" width="240">
+  &nbsp;&nbsp;
+  <img src="assets/screenshots/movil-menu.jpg" alt="Menú en móvil" width="240">
+</p>
+
+## 🧱 Tecnologías
+
+| Capa | Tecnologías |
+|---|---|
+| **Backend** | ASP.NET Core 9 Web API, EF Core, SQL Server, SignalR, JWT, Rate Limiting, ProblemDetails, Swagger |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS 4, Motion, cliente de SignalR |
+| **Tests** | xUnit (81 tests de dominio y casos de uso) · Vitest (13 tests de la lógica del carrito y los pedidos) |
+| **CI/CD** | GitHub Actions (build y tests en cada push) · Azure App Service + Azure SQL · Cloudflare Pages |
+
+## 🏛️ Arquitectura
+
+```mermaid
+flowchart LR
+    Web["React (Cloudflare Pages)"] -- REST / JSON --> Api
+    Web <-- SignalR (WebSocket) --> Api
+    subgraph Backend [".NET 9 (Azure App Service)"]
+        Api["Api<br/>controladores, hub, JWT"] --> App["Application<br/>casos de uso, DTOs, interfaces"]
+        Api --> Infra["Infrastructure<br/>EF Core, repositorios, seguridad"]
+        Infra --> App
+        App --> Dom["Domain<br/>entidades y reglas"]
+    end
+    Infra --> Db[("Azure SQL")]
 ```
-BurgerCravvy.sln
-src/
-├── BurgerCravvy.Domain/          Entidades (Product, Order, OrderItem), enums y reglas de negocio. Sin dependencias.
-├── BurgerCravvy.Application/     Casos de uso (ProductService, OrderService), DTOs e interfaces de repositorio.
-├── BurgerCravvy.Infrastructure/  EF Core + SQL Server: AppDbContext, configuraciones, migraciones, repositorios, datos semilla.
-├── BurgerCravvy.Api/             ASP.NET Core Web API: controladores, hub SignalR, JWT, ProblemDetails, CORS, Swagger.
-└── BurgerCravvy.Web/             React + TypeScript + Vite + Tailwind + Motion + SignalR
-    └── src/
-        ├── domain/               Tipos y lógica pura (producto, carrito, pedido)
-        ├── application/          Estado del carrito/menú y casos de uso (pedir, seguir pedido, panel)
-        ├── infrastructure/       Cliente HTTP, SignalR, repositorios de la API, almacenamiento local
-        └── presentation/         Componentes, web del cliente y panel de cocina
-tests/
-├── BurgerCravvy.Domain.Tests/       Reglas de negocio (estados del pedido, precios, códigos…)
-└── BurgerCravvy.Application.Tests/  Casos de uso con repositorios en memoria (sin base de datos)
-```
 
-Dependencias: `Api → Application + Infrastructure`, `Infrastructure → Application → Domain`.
-
-## Requisitos
-
-- .NET SDK 9
-- SQL Server (por defecto `.\SQLEXPRESS`, autenticación de Windows) — se cambia en `src/BurgerCravvy.Api/appsettings.json`
-- Node.js 20.19+ o 22.12+ (requisito de Vite 8)
-
-## Configuración inicial
-
-```bash
-# Copia la plantilla y pon tu propia clave JWT (32+ caracteres) y contraseña de prueba
-cp src/BurgerCravvy.Api/appsettings.Development.example.json src/BurgerCravvy.Api/appsettings.Development.json
-```
-
-## Ejecutar
-
-```bash
-# 1) API  → http://localhost:5256/swagger  (en Development aplica las migraciones y crea BurgerCravvyDb)
-dotnet run --project src/BurgerCravvy.Api --launch-profile http
-
-# 2) Web  → http://localhost:5175
-cd src/BurgerCravvy.Web
-npm install
-npm run dev -- --port 5175
-```
-
-La web usa `http://localhost:5256` por defecto. Para otra URL, crea `src/BurgerCravvy.Web/.env` con `VITE_API_URL=https://tu-api`. Si la API está apagada, la web muestra el menú con una copia local.
-
-## Endpoints
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/productos?favoritos=true` | Menú (o solo favoritos) |
-| GET | `/api/productos/{slug}` | Un producto |
-| POST | `/api/pedidos` | Registra un pedido **pendiente** (demo, sin pagos) |
-| GET | `/api/pedidos/{codigo}` | Seguimiento del pedido (cliente) |
-| POST | `/api/auth/login` | Login de empleado → JWT (máx. 5 intentos/min) |
-| GET | `/api/panel/pedidos` | 🔒 Cola de cocina (pendientes, en preparación, listos) |
-| PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
-| GET | `/api/panel/productos` | 🔒 Menú completo, incluidos los retirados |
-| PATCH | `/api/panel/productos/{slug}/disponibilidad` | 🔒 `{ "isAvailable": false }` (agotado) |
-| POST | `/api/panel/productos` | 👑 Crear producto |
-| PUT | `/api/panel/productos/{slug}` | 👑 Editar nombre, descripción, precio, foto, distintivo y favorito |
-| POST | `/api/panel/productos/{slug}/retirar` | 👑 Retirar del menú (no se borra) |
-| POST | `/api/panel/productos/{slug}/reactivar` | 👑 Volver a ponerlo en el menú |
-
-🔒 = rol `Empleado` o `Admin` · 👑 = solo `Admin`. Ambos con `Authorization: Bearer <token>`;
-en Swagger usa el botón **Authorize**.
-
-## Panel de cocina
-
-Entra en **http://localhost:5175/panel**. En Development la API crea dos usuarios de prueba con los datos de
-`SeedEmployee` y `SeedAdmin` en `src/BurgerCravvy.Api/appsettings.Development.json` (correo y contraseña están ahí).
-
-| Puede… | Empleado (cocina) | Admin |
-|---|:-:|:-:|
-| Ver y mover la cola de pedidos | ✅ | ✅ |
-| Marcar productos agotados / disponibles | ✅ | ✅ |
-| Cambiar precios | — | ✅ |
-| Crear y editar productos | — | ✅ |
-| Elegir los de «Nuestros Favoritos» | — | ✅ |
-| Retirar y reactivar productos | — | ✅ |
-
-Flujo de un pedido (las reglas viven en `Order` del Domain):
+**Clean Architecture**: el `Domain` no depende de nada. Las reglas del negocio viven en las entidades, no en los controladores.
+Por ejemplo, un pedido solo puede avanzar por estados válidos:
 
 ```
 Pendiente ──► En preparación ──► Listo ──► Entregado
     └──────────────┴──► Cancelado
 ```
 
-El cliente lo sigue desde **Sigue tu pedido** (footer, o al confirmar el pedido).
+La web repite la misma idea en el frontend: `domain/` (lógica pura y probada), `application/` (estado y casos de uso),
+`infrastructure/` (HTTP, SignalR, almacenamiento) y `presentation/` (componentes).
 
-> ⚠️ `appsettings.Development.json` no se sube al repo (está en `.gitignore`).
-> En producción usa variables de entorno (`Jwt__Key`, etc.) y no definas `SeedEmployee`.
+<details>
+<summary><b>Estructura de carpetas</b></summary>
 
-## Tiempo real (SignalR)
+```
+src/
+├── BurgerCravvy.Domain/          Entidades (Product, Order, OrderItem, Employee), enums y reglas de negocio
+├── BurgerCravvy.Application/     Casos de uso, DTOs e interfaces de repositorio
+├── BurgerCravvy.Infrastructure/  EF Core + SQL Server: DbContext, configuraciones, migraciones, repositorios, JWT
+├── BurgerCravvy.Api/             Controladores, hub SignalR, autenticación, límites de peticiones, Swagger
+└── BurgerCravvy.Web/             React + TypeScript (domain / application / infrastructure / presentation)
+tests/
+├── BurgerCravvy.Domain.Tests/       Reglas de negocio (estados del pedido, precios, códigos…)
+└── BurgerCravvy.Application.Tests/  Casos de uso con repositorios en memoria (sin base de datos)
+```
+</details>
 
-Hub en **`/hubs/pedidos`**. Los casos de uso avisan a través de `IRealtimeNotifier` (Application) y
-`SignalRNotifier` (Api) lo entrega:
+## 🔐 Decisiones de seguridad
+
+- **Los precios siempre salen de la base de datos**: el cliente solo envía productos y cantidades.
+- **Contraseñas con PBKDF2 y sal** (el hasher de ASP.NET Core Identity).
+- **JWT con roles** (`Empleado`, `Admin`). La clave se valida al arrancar (mínimo 32 caracteres) y nunca está en el repo.
+- **Límite de peticiones por IP**: 5 intentos de login y 10 pedidos por minuto (responde `429`).
+- **El login no revela qué cuentas existen**: muestra el mismo mensaje si falla el correo o la contraseña.
+- **Códigos de pedido difíciles de adivinar** (`BC-261110-6XN9T4`), generados con un generador aleatorio seguro.
+- **Errores en formato ProblemDetails** sin detalles internos. La sesión del panel vive en `sessionStorage`.
+
+## 🔌 Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/productos?favoritos=true` | Menú (o solo favoritos) |
+| GET | `/api/productos/{slug}` | Un producto |
+| POST | `/api/pedidos` | Registra un pedido **pendiente** (demo, sin pagos) |
+| GET | `/api/pedidos/{codigo}` | Seguimiento del pedido |
+| POST | `/api/auth/login` | Login de empleado → JWT |
+| GET | `/api/panel/pedidos` | 🔒 Cola de cocina |
+| PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
+| GET | `/api/panel/productos` | 🔒 Menú completo, incluidos los retirados |
+| PATCH | `/api/panel/productos/{slug}/disponibilidad` | 🔒 Marcar como agotado o disponible |
+| POST | `/api/panel/productos` | 👑 Crear producto |
+| PUT | `/api/panel/productos/{slug}` | 👑 Editar producto |
+| POST | `/api/panel/productos/{slug}/retirar` | 👑 Retirar del menú (no se borra) |
+| POST | `/api/panel/productos/{slug}/reactivar` | 👑 Volver a ponerlo en el menú |
+
+🔒 = rol `Empleado` o `Admin` · 👑 = solo `Admin` · Cabecera `Authorization: Bearer <token>` (en Swagger, botón **Authorize**).
+
+### Tiempo real (SignalR, `/hubs/pedidos`)
 
 | Evento | Quién lo recibe | Para qué |
 |---|---|---|
@@ -111,23 +140,52 @@ Hub en **`/hubs/pedidos`**. Los casos de uso avisan a través de `IRealtimeNotif
 | `OrderUpdated` | `cocina` + grupo del pedido | La línea de tiempo del cliente avanza sola |
 | `ProductUpdated` | todos | Precio y «Agotado» cambian sin recargar |
 
-Métodos del hub: `JoinKitchen()` (solo empleados), `TrackOrder(codigo)` y `StopTracking(codigo)`.
 Si se pierde la conexión, la web se reconecta sola y mientras tanto refresca cada 30 s.
 
-## Tests
+## 🚀 Ejecutar en local
+
+**Requisitos:** .NET SDK 9, SQL Server (por defecto `.\SQLEXPRESS` con autenticación de Windows) y Node.js 20.19+ o 22.12+.
+
+```bash
+# 1) Configuración: copia la plantilla y pon tu clave JWT (32+ caracteres) y los usuarios de prueba
+cp src/BurgerCravvy.Api/appsettings.Development.example.json src/BurgerCravvy.Api/appsettings.Development.json
+
+# 2) API → http://localhost:5256/swagger  (aplica las migraciones y crea la base de datos)
+dotnet run --project src/BurgerCravvy.Api --launch-profile http
+
+# 3) Web → http://localhost:5175
+cd src/BurgerCravvy.Web
+npm install
+npm run dev -- --port 5175
+```
+
+- Otra base de datos: cambia `ConnectionStrings:BurgerCravvy` en `src/BurgerCravvy.Api/appsettings.json`.
+- Otra URL de API para la web: crea `src/BurgerCravvy.Web/.env` con `VITE_API_URL=https://tu-api`.
+- Panel en **http://localhost:5175/panel** con los usuarios `SeedEmployee` y `SeedAdmin` de `appsettings.Development.json`.
+
+## 🧪 Tests
 
 ```bash
 dotnet test                              # Domain + Application (xUnit)
-cd src/BurgerCravvy.Web && npm test      # lógica del carrito y de pedidos (Vitest)
+cd src/BurgerCravvy.Web && npm test      # carrito y pedidos (Vitest)
 ```
 
-GitHub Actions ejecuta la compilación y todos los tests en cada push y pull request (`.github/workflows/ci.yml`).
+GitHub Actions compila y ejecuta todos los tests en cada push y pull request ([ci.yml](.github/workflows/ci.yml)).
 
-## Migraciones
+<details>
+<summary><b>Migraciones</b></summary>
 
 ```bash
 dotnet ef migrations add NombreMigracion -p src/BurgerCravvy.Infrastructure -s src/BurgerCravvy.Api -o Persistence/Migrations
 ```
+</details>
 
-> Las fotos son de Unsplash (por URL) y sirven de marcador de posición: se cambian en
-> `presentation/siteContent.ts` (hero/galería) y en los datos semilla de `ProductConfiguration.cs` (productos).
+## 🗺️ Próximos pasos
+
+- [ ] `docker-compose` para levantar SQL Server, la API y la web con un solo comando.
+- [ ] Tests de integración de la API (`WebApplicationFactory` con una base de datos real).
+- [ ] Control de concurrencia en los pedidos (`RowVersion`) y endpoint `/health`.
+
+## 📄 Licencia
+
+[MIT](LICENSE). Las fotos son de [Unsplash](https://unsplash.com) y Burger Cravvy es un negocio ficticio.
