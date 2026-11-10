@@ -16,6 +16,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         b.Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
         b.Ignore(o => o.Total);
 
+        // Concurrencia optimista: SQL Server cambia este valor en cada UPDATE. Si dos empleados mueven
+        // el mismo pedido a la vez, el segundo UPDATE no encuentra la versión que leyó y se rechaza.
+        // Es una propiedad "sombra": el Domain no sabe nada de ella.
+        b.Property<byte[]>("RowVersion").IsRowVersion();
+
         b.HasMany(o => o.Items).WithOne().HasForeignKey(i => i.OrderId).OnDelete(DeleteBehavior.Cascade);
         b.Navigation(o => o.Items).UsePropertyAccessMode(PropertyAccessMode.Field);
     }

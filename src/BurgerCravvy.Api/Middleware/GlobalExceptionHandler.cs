@@ -16,6 +16,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IPro
             ValidationException => (StatusCodes.Status400BadRequest, "Datos no válidos"),
             DomainException => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio"),
             NotFoundException => (StatusCodes.Status404NotFound, "No encontrado"),
+            ConflictException => (StatusCodes.Status409Conflict, "Conflicto"),
             UnauthorizedException => (StatusCodes.Status401Unauthorized, "No autorizado"),
             _ => (StatusCodes.Status500InternalServerError, "Error inesperado")
         };
