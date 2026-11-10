@@ -10,6 +10,7 @@ using BurgerCravvy.Infrastructure;
 using BurgerCravvy.Infrastructure.Persistence;
 using BurgerCravvy.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -66,6 +67,12 @@ builder.Services.AddRateLimiter(o =>
 // --- Tiempo real ---
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IRealtimeNotifier, SignalRNotifier>();
+
+// --- Salud de la app ---
+// "db" solo se ejecuta en /health/db: si Azure consultara la base cada minuto, Azure SQL gratuito
+// nunca se pausaría y se gastaría la cuota mensual.
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("db", tags: ["db"]);
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
@@ -128,6 +135,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<OrdersHub>(OrdersHub.Path);
+// /health: la API está viva (no toca la base de datos). /health/db: además, la base responde.
+app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/db", new HealthCheckOptions { Predicate = c => c.Tags.Contains("db") });
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 app.Run();
