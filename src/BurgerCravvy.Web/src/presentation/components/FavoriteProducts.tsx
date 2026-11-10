@@ -4,10 +4,10 @@ import ProductCard from './ProductCard'
 
 /** «Nuestros Favoritos»: los productos que el Admin marca para la portada. */
 export default function FavoriteProducts() {
-  const { products, menuSource } = useCart()
+  const { favorites, menuSource } = useCart()
 
   return (
-    <section id="menu" aria-labelledby="favorites-title" className="relative z-10 pt-16 md:pt-20">
+    <section id="favoritos" aria-labelledby="favorites-title" className="relative z-10 pt-16 md:pt-20">
       <div className="container-site">
         <BouncyTitle id="favorites-title" anchorId="favorites" text="Nuestros Favoritos" />
 
@@ -18,7 +18,7 @@ export default function FavoriteProducts() {
         )}
 
         <div className="mx-auto mt-10 grid max-w-[1000px] gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7 max-sm:max-w-[360px]">
-          {products.map((p, i) => (
+          {favorites.map((p, i) => (
             <ProductCard key={p.id} product={p} index={i} />
           ))}
         </div>

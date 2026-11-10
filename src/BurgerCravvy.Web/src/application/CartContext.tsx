@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { isPublicFavorite, type Product } from '../domain/product'
+import { isOnPublicMenu, isPublicFavorite, type Product } from '../domain/product'
 import { countItems, setQuantity, toLines, totalPrice, type CartItems, type CartLine } from '../domain/cart'
 import { cartStorage } from '../infrastructure/storage/cartStorage'
 import { productRepository, type MenuResult } from '../infrastructure/repositories/productRepository'
@@ -7,7 +7,10 @@ import { fallbackProducts } from '../infrastructure/repositories/fallbackProduct
 import { publicHub } from '../infrastructure/realtime/publicHub'
 
 interface CartContextValue {
+  /** Menú público completo. */
   products: Product[]
+  /** Los de «Nuestros Favoritos» (subconjunto de `products`). */
+  favorites: Product[]
   menuSource: MenuResult['source'] | 'loading'
   lines: CartLine[]
   count: number
@@ -34,7 +37,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-    productRepository.getFavorites().then((r) => {
+    productRepository.getMenu().then((r) => {
       if (cancelled) return
       setProducts(r.products)
       setMenuSource(r.source)
@@ -44,14 +47,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Cambios del panel al instante: precio, agotado, productos nuevos, retirados o
-  // que entran / salen de favoritos.
+  // Cambios del panel al instante: precio, agotado, categoría, productos nuevos,
+  // retirados o que entran / salen de favoritos.
   useEffect(
     () =>
       publicHub().on('ProductUpdated', (p) =>
         setProducts((prev) => {
           const without = prev.filter((x) => x.id !== p.id)
-          if (!isPublicFavorite(p)) return without
+          if (!isOnPublicMenu(p)) return without
           return prev.some((x) => x.id === p.id) ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p]
         }),
       ),
@@ -77,6 +80,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const lines = toLines(items, products)
     return {
       products,
+      favorites: products.filter(isPublicFavorite),
       menuSource,
       lines,
       count: countItems(lines),

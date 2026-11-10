@@ -6,6 +6,7 @@ import Header from './components/Header'
 import Navigation from './components/Navigation'
 import Hero from './components/Hero'
 import FavoriteProducts from './components/FavoriteProducts'
+import MenuSection from './components/MenuSection'
 import Gallery from './components/Gallery'
 import Footer from './components/Footer'
 import DecorativeDoodles from './components/DecorativeDoodles'
@@ -29,6 +30,7 @@ export default function App() {
           <div className="paper relative">
             <DecorativeDoodles />
             <FavoriteProducts />
+            <MenuSection />
             <Gallery />
           </div>
         </main>
