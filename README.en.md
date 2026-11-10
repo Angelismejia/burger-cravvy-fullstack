@@ -123,6 +123,7 @@ tests/
 | POST | `/api/pedidos` | Places a **pending** order (demo, no payments) |
 | GET | `/api/pedidos/{codigo}` | Order tracking |
 | POST | `/api/auth/login` | Employee login → JWT |
+| GET | `/health` · `/health/db` | API status · and database status |
 | GET | `/api/panel/pedidos` | 🔒 Kitchen queue |
 | PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
 | GET | `/api/panel/productos` | 🔒 Full menu, including retired items |
@@ -187,7 +188,7 @@ dotnet ef migrations add MigrationName -p src/BurgerCravvy.Infrastructure -s src
 - [ ] `docker-compose` to start SQL Server, the API and the website with a single command.
 - [ ] API integration tests (`WebApplicationFactory` against a real database).
 - [x] Optimistic concurrency on orders (`RowVersion`): if two employees update the same order at once, the second one gets `409 Conflict`.
-- [ ] A `/health` endpoint for Azure monitoring.
+- [x] `/health` (the API is alive; skips the database so the free Azure SQL tier can auto-pause) and `/health/db` (the database also responds).
 
 ## 📄 License
 

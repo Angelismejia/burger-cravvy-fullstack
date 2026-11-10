@@ -121,6 +121,7 @@ tests/
 | POST | `/api/pedidos` | Registra un pedido **pendiente** (demo, sin pagos) |
 | GET | `/api/pedidos/{codigo}` | Seguimiento del pedido |
 | POST | `/api/auth/login` | Login de empleado → JWT |
+| GET | `/health` · `/health/db` | Estado de la API · y de la base de datos |
 | GET | `/api/panel/pedidos` | 🔒 Cola de cocina |
 | PATCH | `/api/panel/pedidos/{codigo}/estado` | 🔒 `{ "action": "preparar" \| "listo" \| "entregar" \| "cancelar" }` |
 | GET | `/api/panel/productos` | 🔒 Menú completo, incluidos los retirados |
@@ -185,7 +186,7 @@ dotnet ef migrations add NombreMigracion -p src/BurgerCravvy.Infrastructure -s s
 - [ ] `docker-compose` para levantar SQL Server, la API y la web con un solo comando.
 - [ ] Tests de integración de la API (`WebApplicationFactory` con una base de datos real).
 - [x] Concurrencia optimista en los pedidos (`RowVersion`): si dos empleados mueven el mismo pedido a la vez, el segundo recibe `409 Conflict`.
-- [ ] Endpoint `/health` para la monitorización de Azure.
+- [x] `/health` (la API está viva, sin tocar la base para que Azure SQL gratuito pueda pausarse) y `/health/db` (además, la base responde).
 
 ## 📄 Licencia
 
