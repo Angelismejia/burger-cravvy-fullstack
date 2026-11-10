@@ -57,7 +57,7 @@ Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, despleg
 |---|---|
 | **Backend** | ASP.NET Core 9 Web API, EF Core, SQL Server, SignalR, JWT, Rate Limiting, ProblemDetails, Swagger |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS 4, Motion, cliente de SignalR |
-| **Tests** | xUnit (81 tests de dominio y casos de uso) · Vitest (13 tests de la lógica del carrito y los pedidos) |
+| **Tests** | xUnit (82 tests de dominio y casos de uso) · Vitest (13 tests de la lógica del carrito y los pedidos) |
 | **CI/CD** | GitHub Actions (build y tests en cada push) · Azure App Service + Azure SQL · Cloudflare Pages |
 
 ## 🏛️ Arquitectura
@@ -184,7 +184,8 @@ dotnet ef migrations add NombreMigracion -p src/BurgerCravvy.Infrastructure -s s
 
 - [ ] `docker-compose` para levantar SQL Server, la API y la web con un solo comando.
 - [ ] Tests de integración de la API (`WebApplicationFactory` con una base de datos real).
-- [ ] Control de concurrencia en los pedidos (`RowVersion`) y endpoint `/health`.
+- [x] Concurrencia optimista en los pedidos (`RowVersion`): si dos empleados mueven el mismo pedido a la vez, el segundo recibe `409 Conflict`.
+- [ ] Endpoint `/health` para la monitorización de Azure.
 
 ## 📄 Licencia
 
