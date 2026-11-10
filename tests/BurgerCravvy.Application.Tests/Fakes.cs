@@ -1,5 +1,6 @@
 using BurgerCravvy.Application.Abstractions;
 using BurgerCravvy.Application.DTOs;
+using BurgerCravvy.Application.Exceptions;
 using BurgerCravvy.Domain.Common;
 using BurgerCravvy.Domain.Entities;
 using BurgerCravvy.Domain.Enums;
@@ -81,9 +82,12 @@ internal class FakeEmployeeRepository(params Employee[] employees) : IEmployeeRe
 internal class FakeUnitOfWork : IUnitOfWork
 {
     public int SaveCount { get; private set; }
+    /// <summary>Simula que otra persona guardó antes (lo que en SQL Server detecta el RowVersion).</summary>
+    public bool SimulateConflict { get; set; }
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
+        if (SimulateConflict) throw new ConflictException("Otra persona cambió este pedido al mismo tiempo.");
         SaveCount++;
         return Task.FromResult(1);
     }

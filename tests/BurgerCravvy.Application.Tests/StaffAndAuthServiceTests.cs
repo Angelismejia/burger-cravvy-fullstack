@@ -60,6 +60,17 @@ public class StaffServiceTests
     }
 
     [Fact]
+    public async Task Si_otro_empleado_guardo_antes_hay_conflicto_y_no_se_avisa_a_nadie()
+    {
+        var order = Seed();
+        _uow.SimulateConflict = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            Service().ChangeOrderStatusAsync(order.Code, new ChangeOrderStatusRequest("preparar")));
+        Assert.Empty(_notifier.Sent);
+    }
+
+    [Fact]
     public async Task Pedido_inexistente_devuelve_no_encontrado() =>
         await Assert.ThrowsAsync<NotFoundException>(() =>
             Service().ChangeOrderStatusAsync("BC-261015-ZZZZZZ", new ChangeOrderStatusRequest("preparar")));
