@@ -15,10 +15,12 @@ public static class DbSeeder
     [
         ("SeedEmployee", EmployeeRole.Empleado, "Equipo Cocina"),
         ("SeedAdmin", EmployeeRole.Admin, "Administración"),
+        // Cuenta pública para que cualquiera pruebe el panel de cocina en la demo (sin permisos de Admin).
+        ("SeedDemo", EmployeeRole.Empleado, "Cocina (demo)"),
     ];
 
     /// <summary>
-    /// Aplica migraciones y crea los usuarios de prueba configurados en "SeedEmployee" y "SeedAdmin"
+    /// Aplica migraciones y crea los usuarios configurados en "SeedEmployee", "SeedAdmin" y "SeedDemo"
     /// (en appsettings.Development.json o en variables de entorno). Si el correo ya existe, no lo toca.
     /// </summary>
     public static async Task MigrateAndSeedAsync(IServiceProvider services, IConfiguration configuration)
