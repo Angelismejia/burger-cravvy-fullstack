@@ -1,0 +1,12 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.env
+**/appsettings.Development.json
+.git
+.github
+.vs
+docs
+assets
+tests

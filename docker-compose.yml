@@ -1,0 +1,54 @@
+# Todo el proyecto con un comando:  docker compose up --build
+#   Web   → http://localhost:5175        (panel: http://localhost:5175/panel)
+#   API   → http://localhost:5256/swagger
+# Las contraseñas de aquí son solo para usar en local.
+# ¿Puertos ocupados? API_PORT=5300 WEB_PORT=5200 docker compose up --build
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Local_Docker_2026!"
+    ports:
+      - "1434:1433" # 1434 en tu máquina para no chocar con un SQL Server ya instalado
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: src/BurgerCravvy.Api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__BurgerCravvy: "Server=db;Database=BurgerCravvyDb;User Id=sa;Password=Local_Docker_2026!;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      Jwt__Key: "clave-local-de-docker-cambiala-si-quieres-0123456789"
+      SeedEmployee__Email: "cocina@burgercravvy.test"
+      SeedEmployee__Password: "Cocina-Local-2026"
+      SeedAdmin__Email: "admin@burgercravvy.test"
+      SeedAdmin__Password: "Admin-Local-2026"
+      Cors__WebUrl: "http://localhost:${WEB_PORT:-5175}"
+    ports:
+      - "${API_PORT:-5256}:8080"
+
+  web:
+    build:
+      context: src/BurgerCravvy.Web
+      args:
+        VITE_API_URL: "http://localhost:${API_PORT:-5256}"
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-5175}:80"
+
+volumes:
+  sqldata:
