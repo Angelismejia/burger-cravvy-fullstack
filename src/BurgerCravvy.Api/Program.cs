@@ -141,3 +141,6 @@ app.MapHealthChecks("/health/db", new HealthCheckOptions { Predicate = c => c.Ta
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 app.Run();
+
+// Visible para los tests de integración (WebApplicationFactory<Program>).
+public partial class Program;
