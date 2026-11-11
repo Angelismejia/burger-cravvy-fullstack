@@ -21,6 +21,10 @@ React frontend + .NET API built with Clean Architecture, SQL Server and SignalR,
 | 🌐 **Website** | **https://burger-cravvy-fullstack.pages.dev** |
 | 👩‍🍳 **Kitchen dashboard** | https://burger-cravvy-fullstack.pages.dev/panel |
 | 📘 **API (Swagger)** | https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/swagger |
+| 🔑 **Demo dashboard user** (Employee role) | `demo@burgercravvy.test` · `Cocina-Demo-2026` |
+
+**Try the real-time flow:** open the dashboard with the demo user in one tab, place an order from the website in
+another, and watch it pop up in the kitchen instantly (with sound). Move it on the dashboard and the customer's tracker advances on its own.
 
 > The API runs on Azure's free tier: after a while without traffic, **the first request can take about 20 s**
 > while the server and the database wake up. Meanwhile the website shows the menu from a local copy.
@@ -41,11 +45,15 @@ React frontend + .NET API built with Clean Architecture, SQL Server and SignalR,
 
 ## 📸 Screenshots
 
+**Kitchen dashboard:** the order queue updates live through SignalR.
+
+![Kitchen dashboard with the order queue](assets/screenshots/panel-pedidos.jpg)
+
 | Menu with category tabs | Cart |
 |---|---|
 | ![Menu](assets/screenshots/menu.jpg) | ![Cart](assets/screenshots/carrito.jpg) |
-| **Order tracking (real time)** | **Kitchen dashboard login** |
-| ![Tracking](assets/screenshots/seguimiento.jpg) | ![Dashboard](assets/screenshots/panel-login.jpg) |
+| **Order tracking (real time)** | **Menu management (Admin)** |
+| ![Tracking](assets/screenshots/seguimiento.jpg) | ![Menu management](assets/screenshots/panel-menu.jpg) |
 
 <p align="center">
   <img src="assets/screenshots/movil.jpg" alt="Home page on mobile" width="240">
@@ -59,8 +67,9 @@ React frontend + .NET API built with Clean Architecture, SQL Server and SignalR,
 |---|---|
 | **Backend** | ASP.NET Core 9 Web API, EF Core, SQL Server, SignalR, JWT, Rate Limiting, ProblemDetails, Swagger |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS 4, Motion, SignalR client |
-| **Testing** | xUnit (82 domain and use-case tests) · Vitest (13 tests for cart and order logic) |
-| **CI/CD** | GitHub Actions (build and tests on every push) · Azure App Service + Azure SQL · Cloudflare Pages |
+| **Testing** | xUnit: 82 unit tests (domain and use cases) + 8 integration tests against a real SQL Server · Vitest: 13 (cart and orders) |
+| **CI/CD** | GitHub Actions: build and tests on every push and, if everything passes, API deployment to Azure App Service + Azure SQL · Cloudflare Pages for the website |
+| **Local** | Docker Compose (SQL Server + API + website with one command) |
 
 ## 🏛️ Architecture
 
@@ -99,8 +108,9 @@ src/
 ├── BurgerCravvy.Api/             Controllers, SignalR hub, authentication, rate limiting, Swagger
 └── BurgerCravvy.Web/             React + TypeScript (domain / application / infrastructure / presentation)
 tests/
-├── BurgerCravvy.Domain.Tests/       Business rules (order states, prices, codes…)
-└── BurgerCravvy.Application.Tests/  Use cases with in-memory repositories (no database)
+├── BurgerCravvy.Domain.Tests/          Business rules (order states, prices, codes…)
+├── BurgerCravvy.Application.Tests/     Use cases with in-memory repositories (no database)
+└── BurgerCravvy.Api.IntegrationTests/  Full API against a real SQL Server (HTTP, JWT, roles, RowVersion)
 ```
 </details>
 
@@ -147,6 +157,22 @@ If the connection drops, the website reconnects automatically and polls every 30
 
 ## 🚀 Run locally
 
+### Option A: Docker (one command)
+
+```bash
+docker compose up --build
+```
+
+| | |
+|---|---|
+| Website | http://localhost:5175 |
+| Dashboard | http://localhost:5175/panel → `cocina@burgercravvy.test` / `Cocina-Local-2026` (or `admin@burgercravvy.test` / `Admin-Local-2026`) |
+| API | http://localhost:5256/swagger |
+
+Ports already in use? `API_PORT=5300 WEB_PORT=5200 docker compose up --build`
+
+### Option B: without Docker
+
 **Requirements:** .NET 9 SDK, SQL Server (defaults to `.\SQLEXPRESS` with Windows authentication) and Node.js 20.19+ or 22.12+.
 
 ```bash
@@ -169,11 +195,18 @@ npm run dev -- --port 5175
 ## 🧪 Tests
 
 ```bash
-dotnet test                              # Domain + Application (xUnit)
+dotnet test                              # unit + integration (xUnit)
 cd src/BurgerCravvy.Web && npm test      # cart and orders (Vitest)
 ```
 
-GitHub Actions builds the solution and runs every test on each push and pull request ([ci.yml](.github/workflows/ci.yml)).
+The **integration tests** boot the full API with `WebApplicationFactory` against a **real, throwaway** SQL Server
+database (created from the migrations and dropped afterwards). They cover the seeded menu, server-side prices,
+validation (400), roles (401/403), state rules (422) and that two simultaneous updates to the same order collide on
+the `RowVersion`. Locally they use `.\SQLEXPRESS`; set `TEST_SQL_SERVER` to use another server.
+
+**Pipeline** ([ci.yml](.github/workflows/ci.yml)): every push and pull request builds the solution and runs every test
+(with a SQL Server container for the integration tests). Only if everything passes on `main` is the API deployed to
+Azure, followed by a `/health` check.
 
 <details>
 <summary><b>Migrations</b></summary>
@@ -185,8 +218,9 @@ dotnet ef migrations add MigrationName -p src/BurgerCravvy.Infrastructure -s src
 
 ## 🗺️ Roadmap
 
-- [ ] `docker-compose` to start SQL Server, the API and the website with a single command.
-- [ ] API integration tests (`WebApplicationFactory` against a real database).
+- [x] `docker-compose` to start SQL Server, the API and the website with a single command.
+- [x] API integration tests (`WebApplicationFactory` against a real database).
+- [x] Deploy only when tests pass.
 - [x] Optimistic concurrency on orders (`RowVersion`): if two employees update the same order at once, the second one gets `409 Conflict`.
 - [x] `/health` (the API is alive; skips the database so the free Azure SQL tier can auto-pause) and `/health/db` (the database also responds).
 

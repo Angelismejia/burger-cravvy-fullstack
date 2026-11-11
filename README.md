@@ -19,6 +19,10 @@ Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, despleg
 | 🌐 **Web** | **https://burger-cravvy-fullstack.pages.dev** |
 | 👩‍🍳 **Panel de cocina** | https://burger-cravvy-fullstack.pages.dev/panel |
 | 📘 **API (Swagger)** | https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/swagger |
+| 🔑 **Usuario demo del panel** (rol Empleado) | `demo@burgercravvy.test` · `Cocina-Demo-2026` |
+
+**Prueba el tiempo real:** abre el panel con el usuario demo en una pestaña, haz un pedido desde la web en otra
+y mira cómo aparece en la cocina al instante (con sonido). Al moverlo en el panel, el seguimiento del cliente avanza solo.
 
 > La API está en el plan gratuito de Azure: si lleva un rato sin uso, **la primera carga puede tardar unos 20 s**
 > mientras despiertan el servidor y la base de datos. Mientras tanto la web muestra el menú con una copia local.
@@ -39,11 +43,15 @@ Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, despleg
 
 ## 📸 Capturas
 
+**Panel de cocina:** la cola de pedidos se actualiza en vivo por SignalR.
+
+![Panel de cocina con la cola de pedidos](assets/screenshots/panel-pedidos.jpg)
+
 | Menú con pestañas | Carrito |
 |---|---|
 | ![Menú](assets/screenshots/menu.jpg) | ![Carrito](assets/screenshots/carrito.jpg) |
-| **Seguimiento del pedido (tiempo real)** | **Login del panel de cocina** |
-| ![Seguimiento](assets/screenshots/seguimiento.jpg) | ![Panel](assets/screenshots/panel-login.jpg) |
+| **Seguimiento del pedido (tiempo real)** | **Gestión del menú (Admin)** |
+| ![Seguimiento](assets/screenshots/seguimiento.jpg) | ![Gestión del menú](assets/screenshots/panel-menu.jpg) |
 
 <p align="center">
   <img src="assets/screenshots/movil.jpg" alt="Portada en móvil" width="240">
@@ -57,8 +65,9 @@ Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, despleg
 |---|---|
 | **Backend** | ASP.NET Core 9 Web API, EF Core, SQL Server, SignalR, JWT, Rate Limiting, ProblemDetails, Swagger |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS 4, Motion, cliente de SignalR |
-| **Tests** | xUnit (82 tests de dominio y casos de uso) · Vitest (13 tests de la lógica del carrito y los pedidos) |
-| **CI/CD** | GitHub Actions (build y tests en cada push) · Azure App Service + Azure SQL · Cloudflare Pages |
+| **Tests** | xUnit: 82 unitarios (dominio y casos de uso) + 8 de integración contra SQL Server real · Vitest: 13 (carrito y pedidos) |
+| **CI/CD** | GitHub Actions: build y tests en cada push y, si todo pasa, deploy de la API a Azure App Service + Azure SQL · Cloudflare Pages para la web |
+| **Local** | Docker Compose (SQL Server + API + web con un comando) |
 
 ## 🏛️ Arquitectura
 
@@ -97,8 +106,9 @@ src/
 ├── BurgerCravvy.Api/             Controladores, hub SignalR, autenticación, límites de peticiones, Swagger
 └── BurgerCravvy.Web/             React + TypeScript (domain / application / infrastructure / presentation)
 tests/
-├── BurgerCravvy.Domain.Tests/       Reglas de negocio (estados del pedido, precios, códigos…)
-└── BurgerCravvy.Application.Tests/  Casos de uso con repositorios en memoria (sin base de datos)
+├── BurgerCravvy.Domain.Tests/          Reglas de negocio (estados del pedido, precios, códigos…)
+├── BurgerCravvy.Application.Tests/     Casos de uso con repositorios en memoria (sin base de datos)
+└── BurgerCravvy.Api.IntegrationTests/  API completa contra SQL Server real (HTTP, JWT, roles, RowVersion)
 ```
 </details>
 
@@ -145,6 +155,22 @@ Si se pierde la conexión, la web se reconecta sola y mientras tanto refresca ca
 
 ## 🚀 Ejecutar en local
 
+### Opción A: Docker (un solo comando)
+
+```bash
+docker compose up --build
+```
+
+| | |
+|---|---|
+| Web | http://localhost:5175 |
+| Panel | http://localhost:5175/panel → `cocina@burgercravvy.test` / `Cocina-Local-2026` (o `admin@burgercravvy.test` / `Admin-Local-2026`) |
+| API | http://localhost:5256/swagger |
+
+¿Puertos ocupados? `API_PORT=5300 WEB_PORT=5200 docker compose up --build`
+
+### Opción B: sin Docker
+
 **Requisitos:** .NET SDK 9, SQL Server (por defecto `.\SQLEXPRESS` con autenticación de Windows) y Node.js 20.19+ o 22.12+.
 
 ```bash
@@ -167,11 +193,18 @@ npm run dev -- --port 5175
 ## 🧪 Tests
 
 ```bash
-dotnet test                              # Domain + Application (xUnit)
+dotnet test                              # unitarios + integración (xUnit)
 cd src/BurgerCravvy.Web && npm test      # carrito y pedidos (Vitest)
 ```
 
-GitHub Actions compila y ejecuta todos los tests en cada push y pull request ([ci.yml](.github/workflows/ci.yml)).
+Los **tests de integración** levantan la API completa con `WebApplicationFactory` contra una base SQL Server
+**real y temporal** (se crea con las migraciones y se borra al terminar). Comprueban el menú sembrado, los precios,
+las validaciones (400), los roles (401/403), las reglas de estado (422) y que dos cambios simultáneos sobre el mismo
+pedido chocan con el `RowVersion`. En local usan `.\SQLEXPRESS`; con otro servidor, define `TEST_SQL_SERVER`.
+
+**Pipeline** ([ci.yml](.github/workflows/ci.yml)): en cada push y pull request se compila y se pasan todos los tests
+(con un contenedor de SQL Server para los de integración). Solo si todo pasa en `main` se despliega la API en Azure
+y se comprueba que `/health` responde.
 
 <details>
 <summary><b>Migraciones</b></summary>
@@ -183,8 +216,9 @@ dotnet ef migrations add NombreMigracion -p src/BurgerCravvy.Infrastructure -s s
 
 ## 🗺️ Próximos pasos
 
-- [ ] `docker-compose` para levantar SQL Server, la API y la web con un solo comando.
-- [ ] Tests de integración de la API (`WebApplicationFactory` con una base de datos real).
+- [x] `docker-compose` para levantar SQL Server, la API y la web con un solo comando.
+- [x] Tests de integración de la API (`WebApplicationFactory` con una base de datos real).
+- [x] Deploy solo si pasan los tests.
 - [x] Concurrencia optimista en los pedidos (`RowVersion`): si dos empleados mueven el mismo pedido a la vez, el segundo recibe `409 Conflict`.
 - [x] `/health` (la API está viva, sin tocar la base para que Azure SQL gratuito pueda pausarse) y `/health/db` (además, la base responde).
 
