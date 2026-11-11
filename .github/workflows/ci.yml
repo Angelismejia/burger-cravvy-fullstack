@@ -4,15 +4,31 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
+# En un PR se cancela la ejecución anterior; en main no, para no cortar un deploy a medias.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
     name: API (.NET 9)
     runs-on: ubuntu-latest
+    services:
+      # SQL Server real para los tests de integración.
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: Tests_Ci_2026!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Tests_Ci_2026!' -Q 'SELECT 1' -b"
+          --health-interval 10s --health-timeout 5s --health-retries 12
+    env:
+      TEST_SQL_SERVER: "Server=localhost,1433;User Id=sa;Password=Tests_Ci_2026!;TrustServerCertificate=True"
     steps:
       - uses: actions/checkout@v7
 
@@ -26,7 +42,7 @@ jobs:
       - name: Compilar
         run: dotnet build BurgerCravvy.sln --no-restore -c Release
 
-      - name: Tests (Domain + Application)
+      - name: Tests (Domain + Application + integración con SQL Server)
         run: dotnet test BurgerCravvy.sln --no-build -c Release --logger "trx;LogFileName=resultados.trx"
 
       - name: Publicar resultados de tests
@@ -59,3 +75,62 @@ jobs:
 
       - name: Compilar (TypeScript + Vite)
         run: npm run build
+
+  # Solo se despliega si todo lo anterior pasó, y solo desde main.
+  # (La web la publica Cloudflare Pages directamente desde el repo.)
+  deploy-api:
+    name: Desplegar API (Azure App Service)
+    needs: [backend, web]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # login en Azure con OIDC, sin contraseñas guardadas
+      contents: read
+    env:
+      DEMO_EMAIL: ${{ secrets.DEMO_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Publicar solo el proyecto de la API
+        run: dotnet publish src/BurgerCravvy.Api -c Release -o ./publish
+
+      - name: Login en Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1ABF370CF6B4DA28EC0472F7CF7F2DE }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3B9343A1F3694405A317C3D11608232D }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6B43C8E125D64A3E81A4872444EDC2DB }}
+
+      - name: Desplegar en Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: burgercravvy-api
+          slot-name: Production
+          package: ./publish
+
+      # Usuario demo (rol Empleado) que aparece en el README. Al cambiar la configuración, la API
+      # se reinicia y DbSeeder lo crea si aún no existe.
+      - name: Configurar usuario demo
+        if: env.DEMO_EMAIL != '' # se salta si aún no existen los secrets DEMO_EMAIL y DEMO_PASSWORD
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: burgercravvy-api
+          slot-name: Production
+          app-settings-json: |
+            [
+              { "name": "SeedDemo__Email", "value": "${{ secrets.DEMO_EMAIL }}", "slotSetting": false },
+              { "name": "SeedDemo__Password", "value": "${{ secrets.DEMO_PASSWORD }}", "slotSetting": false },
+              { "name": "SeedDemo__FullName", "value": "Cocina (demo)", "slotSetting": false }
+            ]
+
+      - name: Comprobar que la API responde
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 60 "https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/health"; then exit 0; fi
+            sleep 10
+          done
+          echo "La API no respondió en /health" && exit 1
