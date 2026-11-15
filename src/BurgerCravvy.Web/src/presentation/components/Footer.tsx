@@ -11,7 +11,7 @@ const socials = [
   },
   {
     name: 'Instagram',
-    href: 'https://www.instagram.com/',
+    href: 'https://www.instagram.com/mejia_angelis/',
     path: 'M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3zm0 2A2.5 2.5 0 0 0 5 7.5v9A2.5 2.5 0 0 0 7.5 19h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 16.5 5zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm4.6-3.4a1 1 0 1 1 0 2 1 1 0 0 1 0-2z',
   },
   {
