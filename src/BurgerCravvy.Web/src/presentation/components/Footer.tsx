@@ -16,7 +16,7 @@ const socials = [
   },
   {
     name: 'TikTok',
-    href: 'https://www.tiktok.com/',
+    href: 'https://www.tiktok.com/@mejia_angelis',
     path: 'M16.5 3c.4 2.3 1.9 3.8 4 4v3.2a7.4 7.4 0 0 1-4-1.3v6.6A5.6 5.6 0 1 1 11 9.9v3.3a2.4 2.4 0 1 0 2.2 2.4V3z',
   },
 ]
