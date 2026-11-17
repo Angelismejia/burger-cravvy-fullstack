@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { Mail, Phone, X } from 'lucide-react'
+import { Lock, Mail, Phone, X } from 'lucide-react'
 import BurgerIcon from './BurgerIcon'
 import { useOrderTracking } from '../../application/OrderTrackingContext'
 
@@ -138,9 +138,16 @@ export default function Footer() {
       </div>
 
       <div className="container-site">
-        <p className="border-t border-cream/20 py-6 text-center font-ui text-sm text-cream/80">
-          © 2026 Burger Cravvy. Hecho con amor y extra queso.
-        </p>
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-cream/20 py-6 font-ui text-sm text-cream/80 sm:flex-row">
+          <p className="text-center">© 2026 Burger Cravvy. Hecho con amor y extra queso.</p>
+          <a
+            href="/panel"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-cream/70 transition hover:bg-cream/10 hover:text-white-warm"
+          >
+            <Lock className="h-3.5 w-3.5" aria-hidden />
+            Acceso equipo
+          </a>
+        </div>
       </div>
 
       <dialog
