@@ -3,6 +3,7 @@ import type { Order } from '../../domain/order'
 import { orderRepository } from '../../infrastructure/repositories/orderRepository'
 import { lastOrderStore } from '../../infrastructure/storage/sessionStore'
 import { useCart } from '../CartContext'
+import { useOrderHistory } from '../OrderHistoryContext'
 
 type State =
   | { status: 'idle' }
@@ -13,6 +14,7 @@ type State =
 /** Caso de uso: enviar el carrito a la API como pedido pendiente (sin pago). */
 export function usePlaceOrder() {
   const { lines, clear } = useCart()
+  const { remember } = useOrderHistory()
   const [state, setState] = useState<State>({ status: 'idle' })
 
   const placeOrder = async (customerName: string) => {
@@ -24,6 +26,7 @@ export function usePlaceOrder() {
       })
       clear()
       lastOrderStore.save(order.code)
+      remember(order)
       setState({ status: 'success', order })
     } catch (e) {
       setState({ status: 'error', message: e instanceof Error ? e.message : 'Algo salió mal.' })

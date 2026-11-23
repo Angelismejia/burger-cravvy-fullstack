@@ -3,6 +3,7 @@ import { isFinal, type Order } from '../domain/order'
 import { orderRepository } from '../infrastructure/repositories/orderRepository'
 import { publicHub, stopTrackingOrder, trackOrder } from '../infrastructure/realtime/publicHub'
 import { lastOrderStore } from '../infrastructure/storage/sessionStore'
+import { useOrderHistory } from './OrderHistoryContext'
 
 /** Respaldo por si se pierde algún aviso en tiempo real. */
 const FALLBACK_POLL_MS = 30_000
@@ -27,19 +28,22 @@ export function OrderTrackingProvider({ children }: { children: ReactNode }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const { remember } = useOrderHistory()
 
   const fetchOrder = useCallback(async (c: string, silent = false) => {
     if (!silent) setLoading(true)
     try {
-      setOrder(await orderRepository.getByCode(c))
+      const found = await orderRepository.getByCode(c)
+      setOrder(found)
       setError(null)
+      remember(found) // un pedido que buscas por código también pasa a «Mis pedidos»
     } catch (e) {
       setOrder(null)
       setError(e instanceof Error ? e.message : 'No pudimos encontrar el pedido.')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [remember])
 
   const track = useCallback(
     (c: string) => {

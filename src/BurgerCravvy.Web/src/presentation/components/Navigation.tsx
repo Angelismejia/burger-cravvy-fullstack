@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Menu, ShoppingBag, X } from 'lucide-react'
+import { Menu, Receipt, ShoppingBag, X } from 'lucide-react'
 import OrderButton from './OrderButton'
 import { useCart } from '../../application/CartContext'
+import { useOrderHistory } from '../../application/OrderHistoryContext'
 import { useActiveSection } from '../../application/hooks/useActiveSection'
 
 export const navLinks = [
@@ -15,6 +16,7 @@ const sectionIds = navLinks.map((l) => l.id)
 export default function Navigation() {
   const active = useActiveSection(sectionIds)
   const { count, open } = useCart()
+  const history = useOrderHistory()
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -56,7 +58,32 @@ export default function Navigation() {
           ))}
         </ul>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          {history.size > 0 && (
+            <button
+              type="button"
+              onClick={history.open}
+              className="relative grid h-11 w-11 place-items-center rounded-full text-white-warm transition hover:bg-white-warm/15"
+              aria-label={
+                history.activeCount > 0
+                  ? `Mis pedidos, ${history.activeCount} en curso`
+                  : 'Mis pedidos'
+              }
+              title="Mis pedidos"
+            >
+              <Receipt className="h-6 w-6" />
+              {history.activeCount > 0 && (
+                <motion.span
+                  key={history.activeCount}
+                  initial={{ scale: 0.4 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-mustard px-1 text-[11px] font-bold text-green-dark"
+                >
+                  {history.activeCount}
+                </motion.span>
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={open}

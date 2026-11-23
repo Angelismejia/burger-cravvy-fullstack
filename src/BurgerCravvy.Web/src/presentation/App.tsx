@@ -1,6 +1,8 @@
 import { MotionConfig } from 'motion/react'
 import { CartProvider } from '../application/CartContext'
 import { OrderTrackingProvider } from '../application/OrderTrackingContext'
+import { OrderHistoryProvider } from '../application/OrderHistoryContext'
+import OrderHistory from './components/OrderHistory'
 import OrderTracker from './components/OrderTracker'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
@@ -17,6 +19,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <CartProvider>
+        <OrderHistoryProvider>
         <OrderTrackingProvider>
         <a
           href="#menu"
@@ -40,7 +43,9 @@ export default function App() {
         <CartDrawer />
         <AddedToast />
         <OrderTracker />
+        <OrderHistory />
         </OrderTrackingProvider>
+        </OrderHistoryProvider>
       </CartProvider>
     </MotionConfig>
   )

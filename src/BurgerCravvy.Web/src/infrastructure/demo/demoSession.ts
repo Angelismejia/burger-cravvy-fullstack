@@ -22,9 +22,9 @@ export interface DemoTab {
 const DATA_KEY = 'burger-cravvy-demo'
 const TAB_KEY = 'burger-cravvy-demo-tab'
 const CHANNEL_NAME = 'burger-cravvy-demo'
-/** Claves de la web que en la demo usan su propia copia (carrito, último pedido). */
+/** Claves de la web que en la demo usan su propia copia (carrito, último pedido, historial). */
 const DEMO_SUFFIX = '-demo'
-const SCOPED_KEYS = ['burger-cravvy-cart', 'burger-cravvy-last-order']
+const SCOPED_KEYS = ['burger-cravvy-cart', 'burger-cravvy-last-order', 'burger-cravvy-order-history']
 
 type Message =
   | { type: 'hub'; event: keyof HubEvents; payload: unknown }

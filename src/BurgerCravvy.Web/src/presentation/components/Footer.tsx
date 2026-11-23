@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { Lock, Mail, Phone, X } from 'lucide-react'
 import BurgerIcon from './BurgerIcon'
 import { useOrderTracking } from '../../application/OrderTrackingContext'
+import { useOrderHistory } from '../../application/OrderHistoryContext'
 
 const socials = [
   {
@@ -52,6 +53,7 @@ const linkCls =
 export default function Footer() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const tracking = useOrderTracking()
+  const history = useOrderHistory()
   const [info, setInfo] = useState<keyof typeof infoContent>('hours')
 
   const openInfo = (key: keyof typeof infoContent) => {
@@ -88,6 +90,7 @@ export default function Footer() {
             <li><a className={linkCls} href="#favorites">Favoritos</a></li>
             <li><a className={linkCls} href="#contact">Contacto</a></li>
             <li><button type="button" className={linkCls} onClick={() => tracking.open()}>Sigue tu pedido</button></li>
+            <li><button type="button" className={linkCls} onClick={history.open}>Mis pedidos</button></li>
           </ul>
         </nav>
 
