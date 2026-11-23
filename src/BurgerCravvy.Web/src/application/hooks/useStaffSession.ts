@@ -2,8 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { isExpired, type StaffSession } from '../../domain/staff'
 import { staffRepository } from '../../infrastructure/repositories/staffRepository'
 import { staffSessionStore } from '../../infrastructure/storage/sessionStore'
+import { demoStaffSession } from '../../infrastructure/demo/demoRepositories'
+import { activeDemo } from '../../infrastructure/demo/demoSession'
+import { exitDemo } from '../demo'
 
 function initialSession() {
+  if (activeDemo) return demoStaffSession(activeDemo.staffRole)
   const s = staffSessionStore.load()
   return s && !isExpired(s) ? s : null
 }
@@ -14,6 +18,7 @@ export function useStaffSession() {
   const [loading, setLoading] = useState(false)
 
   const logout = useCallback(() => {
+    if (activeDemo) return exitDemo() // en la demo, «Salir» descarta todo lo que se hizo
     staffSessionStore.clear()
     setSession(null)
   }, [])

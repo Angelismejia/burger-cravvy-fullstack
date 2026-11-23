@@ -1,7 +1,8 @@
 import type { StaffSession } from '../../domain/staff'
+import { scopedKey } from '../demo/demoSession'
 
 const SESSION_KEY = 'burger-cravvy-staff'
-const LAST_ORDER_KEY = 'burger-cravvy-last-order'
+const LAST_ORDER_KEY = scopedKey('burger-cravvy-last-order')
 
 /** La sesión del empleado vive en sessionStorage: se borra al cerrar la pestaña. */
 export const staffSessionStore = {

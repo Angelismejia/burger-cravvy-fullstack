@@ -15,18 +15,27 @@ export interface HubEvents {
 
 export type LiveStatus = 'connecting' | 'live' | 'offline'
 
+/** Lo que la web necesita de una conexión en vivo (SignalR real o la de la demo). */
+export interface LiveChannel {
+  start(): void
+  on<K extends keyof HubEvents>(event: K, handler: (payload: HubEvents[K]) => void): () => void
+  invoke(method: string, ...args: unknown[]): Promise<void>
+  onStatus(listener: (s: LiveStatus) => void): () => void
+  stop(): Promise<void>
+}
+
 interface ChannelOptions {
   /** JWT del empleado (solo para el grupo de cocina). */
   token?: string
   /** Se ejecuta tras conectar y tras cada reconexión: aquí se (re)unen los grupos. */
-  onConnected?: (channel: RealtimeChannel) => Promise<void> | void
+  onConnected?: (channel: LiveChannel) => Promise<void> | void
 }
 
 /**
  * Envoltorio de una conexión SignalR: reconexión automática, reintentos si el servidor
  * no está disponible al arrancar y estado observable para mostrar «En vivo».
  */
-export class RealtimeChannel {
+export class RealtimeChannel implements LiveChannel {
   private readonly conn: HubConnection
   private status: LiveStatus = 'connecting'
   private readonly statusListeners = new Set<(s: LiveStatus) => void>()

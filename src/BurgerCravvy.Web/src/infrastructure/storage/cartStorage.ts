@@ -1,6 +1,7 @@
 import type { CartItems } from '../../domain/cart'
+import { scopedKey } from '../demo/demoSession'
 
-const KEY = 'burger-cravvy-cart'
+const KEY = scopedKey('burger-cravvy-cart')
 
 export const cartStorage = {
   load(): CartItems {

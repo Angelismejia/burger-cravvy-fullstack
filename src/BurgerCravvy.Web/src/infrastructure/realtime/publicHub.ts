@@ -1,14 +1,15 @@
-import { RealtimeChannel } from './realtimeChannel'
+import { createRealtimeChannel } from './createRealtimeChannel'
+import type { LiveChannel } from './realtimeChannel'
 
 /** Pedidos que este navegador está siguiendo: se vuelven a unir tras cada reconexión. */
 const trackedOrders = new Set<string>()
 
-let channel: RealtimeChannel | null = null
+let channel: LiveChannel | null = null
 
 /** Conexión pública compartida por toda la web del cliente (menú + seguimiento). */
-export function publicHub(): RealtimeChannel {
+export function publicHub(): LiveChannel {
   if (!channel) {
-    channel = new RealtimeChannel({
+    channel = createRealtimeChannel({
       onConnected: async (c) => {
         for (const code of trackedOrders) await c.invoke('TrackOrder', code)
       },

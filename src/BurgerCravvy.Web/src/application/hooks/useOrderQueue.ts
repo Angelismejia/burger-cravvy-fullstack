@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { isFinal, type Order, type OrderAction } from '../../domain/order'
 import { playChime } from '../../infrastructure/audio/chime'
 import { ApiError } from '../../infrastructure/http/apiClient'
-import { RealtimeChannel, type LiveStatus } from '../../infrastructure/realtime/realtimeChannel'
+import { createRealtimeChannel } from '../../infrastructure/realtime/createRealtimeChannel'
+import type { LiveStatus } from '../../infrastructure/realtime/realtimeChannel'
 import { staffRepository } from '../../infrastructure/repositories/staffRepository'
 
 /** Respaldo por si se pierde algún aviso en tiempo real. */
@@ -55,7 +56,7 @@ export function useOrderQueue(token: string, onUnauthorized: () => void) {
 
   // Tiempo real: pedidos nuevos y cambios de estado al instante.
   useEffect(() => {
-    const channel = new RealtimeChannel({
+    const channel = createRealtimeChannel({
       token,
       onConnected: async (c) => {
         await c.invoke('JoinKitchen')

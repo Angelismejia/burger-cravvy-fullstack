@@ -1,9 +1,11 @@
 import type { Order, OrderAction } from '../../domain/order'
 import type { Product, ProductDraft } from '../../domain/product'
 import type { StaffSession } from '../../domain/staff'
+import { demoStaffRepository } from '../demo/demoRepositories'
+import { isDemo } from '../demo/demoSession'
 import { apiRequest } from '../http/apiClient'
 
-export const staffRepository = {
+export const apiStaffRepository = {
   login: (email: string, password: string) =>
     apiRequest<StaffSession>('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
@@ -43,3 +45,6 @@ export const staffRepository = {
   restoreProduct: (token: string, slug: string) =>
     apiRequest<Product>(`/api/panel/productos/${encodeURIComponent(slug)}/reactivar`, { method: 'POST', token }),
 }
+
+/** En el modo demo, el panel trabaja sobre los datos de la sesión de demo. */
+export const staffRepository = isDemo ? demoStaffRepository : apiStaffRepository
