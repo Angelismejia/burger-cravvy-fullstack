@@ -19,10 +19,12 @@ Web en React + API en .NET con Clean Architecture, SQL Server y SignalR, despleg
 | 🌐 **Web** | **https://burger-cravvy-fullstack.pages.dev** |
 | 👩‍🍳 **Panel de cocina** | https://burger-cravvy-fullstack.pages.dev/panel |
 | 📘 **API (Swagger)** | https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/swagger |
-| 🔑 **Usuario demo del panel** (rol Empleado) | `demo@burgercravvy.test` · `Cocina-Demo-2026` |
+| ▶️ **Modo demo** | Botón **«Ver demo»** en la web: entra como **cliente**, **cocina** o **admin**, sin contraseña |
 
-**Prueba el tiempo real:** abre el panel con el usuario demo en una pestaña, haz un pedido desde la web en otra
-y mira cómo aparece en la cocina al instante (con sonido). Al moverlo en el panel, el seguimiento del cliente avanza solo.
+**Modo demo:** haz lo que quieras (pedir, mover pedidos, cambiar precios, retirar productos). Todo ocurre en tu
+navegador sobre una copia del menú real: **nada llega a la base de datos** y, al pulsar «Salir de la demo», vuelve
+a estar como al principio. Para ver el tiempo real, abre otro rol de la franja amarilla en una pestaña nueva
+(Ctrl+clic): un pedido hecho como cliente aparece al instante en la cocina, y al moverlo, el seguimiento avanza solo.
 
 > La API está en el plan gratuito de Azure: si lleva un rato sin uso, **la primera carga puede tardar unos 20 s**
 > mientras despiertan el servidor y la base de datos. Mientras tanto la web muestra el menú con una copia local.

@@ -21,10 +21,12 @@ React frontend + .NET API built with Clean Architecture, SQL Server and SignalR,
 | 🌐 **Website** | **https://burger-cravvy-fullstack.pages.dev** |
 | 👩‍🍳 **Kitchen dashboard** | https://burger-cravvy-fullstack.pages.dev/panel |
 | 📘 **API (Swagger)** | https://burgercravvy-api-ftexgydxftcteyhc.westus3-01.azurewebsites.net/swagger |
-| 🔑 **Demo dashboard user** (Employee role) | `demo@burgercravvy.test` · `Cocina-Demo-2026` |
+| ▶️ **Demo mode** | **«Ver demo»** button on the website: enter as **customer**, **kitchen** or **admin**, no password |
 
-**Try the real-time flow:** open the dashboard with the demo user in one tab, place an order from the website in
-another, and watch it pop up in the kitchen instantly (with sound). Move it on the dashboard and the customer's tracker advances on its own.
+**Demo mode:** do anything you like (order, move orders, change prices, retire products). It all runs in your
+browser on a copy of the real menu: **nothing reaches the database**, and «Salir de la demo» puts everything back
+as it was. To see the real-time flow, open another role from the yellow bar in a new tab (Ctrl+click): an order
+placed as a customer shows up in the kitchen instantly, and moving it advances the customer's tracker on its own.
 
 > The API runs on Azure's free tier: after a while without traffic, **the first request can take about 20 s**
 > while the server and the database wake up. Meanwhile the website shows the menu from a local copy.
