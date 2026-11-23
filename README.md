@@ -39,9 +39,11 @@ a estar como al principio. Para ver el tiempo real, abre otro rol de la franja a
 - **Menú por categorías** (hamburguesas, acompañantes, bebidas y postres) cargado desde la API.
 - **Carrito** que se guarda en el navegador y **pedido sin registro**: solo pide un nombre.
 - **Seguimiento en tiempo real**: el cliente ve cómo su pedido pasa de *Recibido* a *En preparación*, *Listo* y *Entregado* sin recargar.
+- **Mis pedidos**: el navegador recuerda los últimos pedidos del cliente, con su estado en vivo y acceso directo al seguimiento.
 - **Panel de cocina** con login: los pedidos nuevos aparecen al instante con un aviso sonoro.
 - **Gestión del menú por roles**: el **Empleado** marca productos agotados; el **Admin** además cambia precios, crea, edita y retira productos.
 - Si un precio cambia o un producto se agota, **todas las webs abiertas se actualizan solas**.
+- **Modo demo** sin contraseña (cliente, cocina o admin) que corre en el navegador y se borra al salir.
 
 ## 📸 Capturas
 

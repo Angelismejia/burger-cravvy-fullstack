@@ -41,9 +41,11 @@ placed as a customer shows up in the kitchen instantly, and moving it advances t
 - **Menu by category** (burgers, sides, drinks and desserts) loaded from the API.
 - **Cart** persisted in the browser and **guest checkout**: only a name is required.
 - **Real-time order tracking**: customers watch their order move from *Received* to *Preparing*, *Ready* and *Delivered* without reloading.
+- **My orders**: the browser remembers the customer's recent orders, with live status and a shortcut to tracking.
 - **Kitchen dashboard** with login: new orders show up instantly with a sound alert.
 - **Role-based menu management**: an **Employee** can mark items as sold out; an **Admin** can also change prices and create, edit and retire products.
 - When a price changes or an item sells out, **every open browser updates on its own**.
+- Password-free **demo mode** (customer, kitchen or admin) that runs in the browser and is wiped on exit.
 
 ## 📸 Screenshots
 
