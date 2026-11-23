@@ -11,6 +11,7 @@ import Gallery from './components/Gallery'
 import Footer from './components/Footer'
 import DecorativeDoodles from './components/DecorativeDoodles'
 import CartDrawer, { AddedToast } from './components/CartDrawer'
+import DemoBanner from './demo/DemoBanner'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         >
           Saltar al menú
         </a>
+        <DemoBanner isPanel={false} />
         <Header />
         <Navigation />
         <main>

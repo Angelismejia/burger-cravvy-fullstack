@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Loader2, Lock } from 'lucide-react'
 import BurgerIcon from '../components/BurgerIcon'
+import DemoPicker from '../demo/DemoPicker'
 
 interface Props {
   onLogin: (email: string, password: string) => void
@@ -91,6 +92,10 @@ export default function LoginScreen({ onLogin, error, loading }: Props) {
           <a href="/" className="block text-center font-ui text-sm text-green-dark/70 underline-offset-4 hover:underline">
             ← Volver a la web
           </a>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-2 border-t border-brown-light/15 bg-cream/60 px-8 py-4 text-center font-body text-sm text-green-dark/70">
+          ¿Solo quieres mirar?
+          <DemoPicker variant="link" />
         </div>
       </motion.form>
     </main>

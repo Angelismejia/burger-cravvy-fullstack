@@ -1,4 +1,6 @@
 import { motion } from 'motion/react'
+import { isDemo } from '../../infrastructure/demo/demoSession'
+import DemoPicker from '../demo/DemoPicker'
 import Logo from './Logo'
 
 export default function Header() {
@@ -14,6 +16,7 @@ export default function Header() {
         <p className="hidden text-center font-hand text-xl text-ink/80 sm:block md:text-[1.45rem]">
           Momentos felices, recuerdos sabrosos.
         </p>
+        {!isDemo && <DemoPicker className="col-start-3 justify-self-end" />}
       </div>
     </motion.header>
   )

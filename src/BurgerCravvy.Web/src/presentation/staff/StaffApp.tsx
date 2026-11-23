@@ -7,6 +7,8 @@ import BurgerIcon from '../components/BurgerIcon'
 import LoginScreen from './LoginScreen'
 import OrderBoard from './OrderBoard'
 import MenuManager from './MenuManager'
+import DemoBanner from '../demo/DemoBanner'
+import { isDemo } from '../../infrastructure/demo/demoSession'
 
 const tabs = [
   { id: 'orders', label: 'Pedidos', icon: ClipboardList },
@@ -23,6 +25,7 @@ export default function StaffApp() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="paper min-h-screen">
+        <DemoBanner isPanel />
         {!session ? (
           <LoginScreen onLogin={login} error={error} loading={loading} />
         ) : (
@@ -66,6 +69,7 @@ export default function StaffApp() {
                       {isAdmin(session) ? 'Admin' : 'Cocina'}
                     </span>
                   </span>
+                  {!isDemo && (
                   <button
                     type="button"
                     onClick={logout}
@@ -74,6 +78,7 @@ export default function StaffApp() {
                     <LogOut className="h-4 w-4" aria-hidden />
                     <span className="hidden sm:inline">Salir</span>
                   </button>
+                  )}
                 </div>
               </div>
             </header>
